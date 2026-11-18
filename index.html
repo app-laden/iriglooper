@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BlueBoard Looper v2</title>
+<style>
+:root{--bg:#111418;--card:#1b2027;--line:#2c333d;--txt:#e8ecf1;--dim:#8b95a3;--rec:#e5484d;--dub:#f5a524;--play:#30a46c;--stop:#5b6573;--acc:#3e8ef7}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:14px;max-width:980px;margin:auto}
+header{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
+h1{font-size:22px;margin:0}h2{font-size:16px;margin:0 0 8px}
+#ver{color:var(--dim)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:10px}
+label{display:flex;flex-direction:column;gap:4px;color:var(--dim);font-size:13px}
+label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--txt)}
+select,input[type=number]{background:#0f1216;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px}
+button{background:#2a313b;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:14px;cursor:pointer}
+button:hover{border-color:var(--acc)}
+#startBtn{background:var(--acc);border:none;font-weight:600;padding:10px 16px}
+.small{font-size:12px;color:var(--dim)}
+.meter{height:8px;background:#0f1216;border-radius:4px;overflow:hidden;margin-top:12px}
+#meterBar{height:100%;width:0;background:linear-gradient(90deg,var(--play),var(--dub) 75%,var(--rec))}
+#midiInfo{margin-top:8px}
+.state{font-size:44px;font-weight:800;letter-spacing:2px;text-align:center;padding:6px;border-radius:10px}
+.state.empty{color:var(--dim)}.state.rec{color:#fff;background:var(--rec)}.state.dub{color:#111;background:var(--dub)}
+.state.play{color:#fff;background:var(--play)}.state.stopped{color:#fff;background:var(--stop)}
+.row{display:flex;justify-content:space-between;gap:10px;margin-top:8px;flex-wrap:wrap}
+.bar{height:14px;background:#0f1216;border-radius:7px;overflow:hidden;margin-top:8px}
+#pos{height:100%;width:0;background:var(--acc)}
+#msg{min-height:20px;margin-top:8px;text-align:center;color:var(--dub)}
+.pedals{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+@media(max-width:640px){.pedals{grid-template-columns:repeat(2,1fr)}}
+.pedal{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px;text-align:center;cursor:pointer;user-select:none;transition:transform .05s}
+.pedal:active,.pedal.hit{transform:scale(.97);border-color:var(--acc)}
+.pedal .key{font-size:34px;font-weight:800}
+.pedal .fn{font-size:14px;min-height:38px}
+.pedal .map{font-size:11px;color:var(--dim);min-height:16px;margin:6px 0}
+.pedal button.learning{background:var(--dub);color:#111}
+.layer{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+.layer.muted span{color:var(--dim);text-decoration:line-through}
+#help li{margin-bottom:4px}
+</style>
+</head>
+<body>
+<header><h1>BlueBoard Looper</h1><span id="ver">v2</span></header>
+
+<section class="card">
+  <button id="startBtn">▶ Audio starten</button>
+  <span id="audioInfo" class="small" style="margin-left:10px">Audio aus</span>
+  <div class="grid">
+    <label>Eingang (Audio-Interface)<select id="inSel"></select></label>
+    <label>Eingangskanal<select id="chSel"><option value="0">1 (links)</option><option value="1">2 (rechts)</option><option value="-1">Mix 1+2</option></select></label>
+    <label id="outWrap">Ausgang<select id="outSel"></select></label>
+    <label>Eingangspegel <input type="range" id="inGainR" min="0" max="4" step="0.05"></label>
+    <label>Loop-Lautstärke <input type="range" id="loopVolR" min="0" max="1.5" step="0.05"></label>
+    <label>Latenzausgleich (ms)<input type="number" id="latN" min="0" max="500" step="1"></label>
+    <label class="chk"><input type="checkbox" id="monChk"> Eingang durch die App hören (Monitor)</label>
+    <label class="chk"><input type="checkbox" id="ccChk"> CC: jeder Wert löst aus (Toggle-Modus)</label>
+  </div>
+  <div class="meter"><div id="meterBar"></div></div>
+  <div id="midiInfo" class="small"></div>
+</section>
+
+<section class="card">
+  <div id="stateTxt" class="state empty">LEER</div>
+  <div class="row"><span id="len">–</span><span id="layerInfo">Stufen: 0</span></div>
+  <div class="bar"><div id="pos"></div></div>
+  <div id="msg"></div>
+</section>
+
+<section class="pedals">
+  <div class="pedal" data-k="A"><div class="key">A</div><div class="fn">Aufnahme → Play → Overdub</div><div class="map" id="mapA"></div><button class="learn" data-k="A">MIDI lernen</button></div>
+  <div class="pedal" data-k="B"><div class="key">B</div><div class="fn">Letzte Stufe rückgängig</div><div class="map" id="mapB"></div><button class="learn" data-k="B">MIDI lernen</button></div>
+  <div class="pedal" data-k="C"><div class="key">C</div><div class="fn">Play / Stop</div><div class="map" id="mapC"></div><button class="learn" data-k="C">MIDI lernen</button></div>
+  <div class="pedal" data-k="D"><div class="key">D</div><div class="fn">Alles löschen (2× drücken)</div><div class="map" id="mapD"></div><button class="learn" data-k="D">MIDI lernen</button></div>
+</section>
+
+<section class="card">
+  <h2>Stufen (Layer)</h2>
+  <div id="layers"><div class="small">Noch keine Aufnahme.</div></div>
+  <div class="row"><button id="redoBtn">↻ Stufe wiederherstellen</button><button id="clearBtn">Alles löschen</button></div>
+</section>
+
+<section class="card small" id="help">
+  <h2>Kurzanleitung</h2>
+  <ul>
+    <li>Gitarre/Mikro ins Audio-Interface, Kopfhörer/Amp an den Ausgang des Interfaces. Die App nimmt das Eingangssignal auf und gibt die Loops über den Ausgang wieder aus.</li>
+    <li>Das BlueBoard per Bluetooth koppeln (Mac: Audio-MIDI-Setup → MIDI-Studio → Bluetooth-Symbol), dann bei jeder Taste auf „MIDI lernen“ klicken und den Fußschalter treten.</li>
+    <li><b>A</b>: 1. Druck Aufnahme, 2. Druck Loop schließen und abspielen, danach Overdub an/aus. Jeder Overdub wird eine eigene Stufe.</li>
+    <li><b>B</b>: letzte Stufe entfernen (während Aufnahme/Overdub: diese verwerfen). <b>C</b>: Play/Stop. <b>D</b>: zweimal innerhalb von 2 s drücken, um alles zu löschen.</li>
+    <li>Ohne Pedal: Tasten 1–4 auf der Tastatur oder auf die Kacheln klicken.</li>
+    <li>Klingen Overdubs zu spät, den Latenzausgleich erhöhen; zu früh, verringern.</li>
+  </ul>
+</section>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const store={
+  get(k,d){try{const v=localStorage.getItem('bbl_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+  set(k,v){try{localStorage.setItem('bbl_'+k,JSON.stringify(v))}catch(e){}}
+};
+let cfg=Object.assign({latMs:null,ccAny:false,monitor:false,inGain:1,loopVol:0.9,chan:0,inDev:'',outDev:''},store.get('cfg',{}));
+let map={A:'c0:20',B:'c0:21',C:'c0:22',D:'c0:23'};{const m=store.get('map',{});for(const k in map)if(m[k])map[k]=m[k];}
+const saveCfg=()=>store.set('cfg',cfg);
+
+// ---------- Aufnahme-Worklet ----------
+const WORKLET=`class Cap extends AudioWorkletProcessor{
+constructor(){super();this.ch=0;this.b=new Float32Array(1024);this.n=0;this.f=0;
+this.port.onmessage=e=>{if(e.data&&'ch' in e.data)this.ch=e.data.ch;};}
+process(inp){const i=inp[0];
+if(this.n===0)this.f=currentFrame;
+if(i&&i.length){const N=i[0].length;
+ if(this.ch<0&&i.length>1){const a=i[0],b=i[1];for(let k=0;k<N;k++)this.b[this.n+k]=(a[k]+b[k])*0.5;}
+ else{this.b.set(i[Math.min(Math.max(this.ch,0),i.length-1)],this.n);}
+ this.n+=N;}
+else{this.b.fill(0,this.n,this.n+128);this.n+=128;}
+if(this.n>=this.b.length){const out=this.b;this.port.postMessage({f:this.f,d:out},[out.buffer]);this.b=new Float32Array(1024);this.n=0;}
+return true;}}
+registerProcessor('cap',Cap);`;
+
+// ---------- Audio ----------
+let ctx=null,sr=48000,stream=null,src=null,inGain,monGain,loopBus,cap,analyser;
+let state='empty';      // empty | rec | play | dub | stopped
+let L=0;                // Looplänge in Samples
+let anchor=0;           // Sample-Zeitpunkt, an dem die Loop-Position 0 ist
+let layers=[],redo=[],layerId=0;
+let chunks=[],capturing=false,capEnd=0,busy=0,gen=0;
+let recStart=0,dubStart=0;
+
+const nowF=()=>Math.round(ctx.currentTime*sr);
+const latF=()=>Math.round((cfg.latMs||0)/1000*sr);
+
+async function startAudio(){
+  if(ctx){if(ctx.state!=='running')await ctx.resume();return;}
+  try{
+    ctx=new (window.AudioContext||window.webkitAudioContext)({latencyHint:'interactive'});
+    sr=ctx.sampleRate;
+    inGain=ctx.createGain();monGain=ctx.createGain();loopBus=ctx.createGain();
+    analyser=ctx.createAnalyser();analyser.fftSize=1024;
+    const silent=ctx.createGain();silent.gain.value=0;silent.connect(ctx.destination);
+    await makeCapture(silent);
+    inGain.connect(analyser);
+    inGain.connect(monGain);monGain.connect(ctx.destination);
+    loopBus.connect(ctx.destination);
+    if(cfg.latMs==null){cfg.latMs=Math.round(((ctx.baseLatency||0)+(ctx.outputLatency||0))*1000)+15;saveCfg();}
+    applyCfg();
+    await openInput(cfg.inDev);
+    await listDevices();
+    if(cfg.outDev&&ctx.setSinkId){try{await ctx.setSinkId(cfg.outDev)}catch(e){}}
+    $('startBtn').textContent='Audio läuft';
+    $('audioInfo').textContent=`${sr} Hz · Ausgangslatenz ca. ${Math.round(((ctx.baseLatency||0)+(ctx.outputLatency||0))*1000)} ms · Aufnahme: ${capMode}`;
+  }catch(e){
+    flash('Audio konnte nicht gestartet werden: '+e.message);console.error(e);ctx=null;
+  }
+}
+
+let capMode='',capSetCh=()=>{};
+async function makeCapture(silent){
+  const tries=[
+    ()=>URL.createObjectURL(new Blob([WORKLET],{type:'application/javascript'})),
+    ()=>'data:application/javascript;base64,'+btoa(WORKLET)
+  ];
+  for(const t of tries){
+    try{
+      await ctx.audioWorklet.addModule(t());
+      cap=new AudioWorkletNode(ctx,'cap',{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1]});
+      inGain.connect(cap);cap.connect(silent);
+      cap.port.onmessage=onChunk;
+      capSetCh=ch=>cap.port.postMessage({ch});
+      capMode='AudioWorklet';
+      return;
+    }catch(e){console.warn('Worklet nicht ladbar',e);}
+  }
+  const N=1024;
+  cap=ctx.createScriptProcessor(N,2,1);
+  let ch=cfg.chan;capSetCh=c=>{ch=c;};
+  cap.onaudioprocess=e=>{
+    const ib=e.inputBuffer,d=new Float32Array(ib.length);
+    if(ch<0&&ib.numberOfChannels>1){const a=ib.getChannelData(0),b=ib.getChannelData(1);for(let i=0;i<d.length;i++)d[i]=(a[i]+b[i])*0.5;}
+    else d.set(ib.getChannelData(Math.min(Math.max(ch,0),ib.numberOfChannels-1)));
+    onChunk({data:{f:Math.round(e.playbackTime*sr)-N,d}});
+  };
+  inGain.connect(cap);cap.connect(silent);
+  capMode='Ersatzmodus (Datei lokal geöffnet)';
+}
+
+async function openInput(id){
+  if(stream){stream.getTracks().forEach(t=>t.stop());}
+  if(src){try{src.disconnect()}catch(e){}}
+  const base={echoCancellation:false,noiseSuppression:false,autoGainControl:false,channelCount:{ideal:2}};
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({audio:id?Object.assign({deviceId:{exact:id}},base):base});
+  }catch(e){
+    stream=await navigator.mediaDevices.getUserMedia({audio:base});
+  }
+  src=ctx.createMediaStreamSource(stream);src.connect(inGain);
+}
+
+async function listDevices(){
+  const devs=await navigator.mediaDevices.enumerateDevices();
+  const fill=(sel,kind,cur)=>{sel.innerHTML='';
+    devs.filter(d=>d.kind===kind).forEach((d,i)=>{const o=document.createElement('option');
+      o.value=d.deviceId;o.textContent=d.label||(kind+' '+(i+1));if(d.deviceId===cur)o.selected=true;sel.appendChild(o);});};
+  const curIn=stream&&stream.getAudioTracks()[0]?stream.getAudioTracks()[0].getSettings().deviceId:cfg.inDev;
+  fill($('inSel'),'audioinput',curIn);
+  if(ctx&&ctx.setSinkId){fill($('outSel'),'audiooutput',cfg.outDev||'default');}else{$('outWrap').style.display='none';}
+}
+
+function applyCfg(){
+  $('latN').value=cfg.latMs==null?'':cfg.latMs;
+  $('ccChk').checked=cfg.ccAny;$('monChk').checked=cfg.monitor;
+  $('inGainR').value=cfg.inGain;$('loopVolR').value=cfg.loopVol;$('chSel').value=String(cfg.chan);
+  if(!ctx)return;
+  inGain.gain.value=cfg.inGain;loopBus.gain.value=cfg.loopVol;
+  monGain.gain.value=cfg.monitor?1:0;
+  capSetCh(cfg.chan);
+}
+
+// ---------- Aufnahmepuffer ----------
+function onChunk(e){
+  const {f,d}=e.data;capEnd=f+d.length;
+  if(capturing)chunks.push({f,d});
+}
+function extract(from,to){
+  const out=new Float32Array(Math.max(0,to-from));
+  for(const c of chunks){
+    const cs=c.f,ce=c.f+c.d.length;if(ce<=from||cs>=to)continue;
+    const a=Math.max(cs,from),b=Math.min(ce,to);
+    out.set(c.d.subarray(a-cs,b-cs),a-from);
+  }
+  return out;
+}
+function waitFrame(frame,cb){const t=()=>{if(capEnd>=frame)cb();else setTimeout(t,15);};t();}
+function release(){if(state!=='rec'&&state!=='dub'&&busy===0){capturing=false;chunks=[];}}
+function fade(buf,n){n=Math.min(n,buf.length>>1);for(let i=0;i<n;i++){const g=i/n;buf[i]*=g;buf[buf.length-1-i]*=g;}}
+
+// ---------- Layer ----------
+function addLayer(data){
+  const buf=ctx.createBuffer(1,L,sr);buf.copyToChannel(data,0);
+  const g=ctx.createGain();g.connect(loopBus);
+  const l={id:++layerId,buf,gain:g,muted:false,src:null};
+  layers.push(l);redo=[];
+  if(state==='play'||state==='dub')startSource(l);
+  renderLayers();
+}
+function startSource(l){
+  stopSource(l);
+  const s=ctx.createBufferSource();s.buffer=l.buf;s.loop=true;s.connect(l.gain);
+  const t=ctx.currentTime+0.03;
+  const off=((Math.round(t*sr)-anchor)%L+L)%L;
+  s.start(t,off/sr);l.src=s;
+}
+function stopSource(l){if(l.src){try{l.src.stop()}catch(e){}l.src.disconnect();l.src=null;}}
+function stopAll(){layers.forEach(stopSource);}
+function startPlay(){
+  if(!L)return;
+  anchor=Math.round((ctx.currentTime+0.05)*sr);
+  layers.forEach(startSource);setState('play');
+}
+
+// ---------- Ablauf ----------
+function startRec(){capturing=true;chunks=[];recStart=nowF();setState('rec');}
+function endRec(){
+  const e=nowF(),s=recStart,len=e-s;
+  if(len<sr*0.25){setState('empty');release();flash('Zu kurz – verworfen');return;}
+  L=len;anchor=e;setState('play');
+  const lat=latF(),g=gen;busy++;
+  waitFrame(e+lat,()=>{
+    if(g!==gen)return;
+    const data=extract(s+lat,e+lat);fade(data,Math.round(sr*0.004));
+    addLayer(data);busy--;release();
+  });
+}
+function startDub(){if(busy===0)chunks=[];capturing=true;dubStart=nowF();setState('dub');}
+function endDub(next){
+  const e=nowF(),s=dubStart,anc=anchor,lat=latF(),g=gen;
+  setState(next);busy++;
+  waitFrame(e+lat,()=>{
+    if(g!==gen)return;
+    const raw=extract(s+lat,e+lat);busy--;
+    if(raw.length<sr*0.05){release();return;}
+    fade(raw,Math.round(sr*0.004));
+    const out=new Float32Array(L);
+    const p0=((s-anc)%L+L)%L;
+    for(let i=0;i<raw.length;i++)out[(p0+i)%L]+=raw[i];
+    addLayer(out);release();
+  });
+}
+function undo(){
+  if(state==='rec'){setState('empty');release();flash('Aufnahme verworfen');return;}
+  if(state==='dub'){setState('play');release();flash('Overdub verworfen');return;}
+  if(!layers.length){flash('Keine Stufe zum Entfernen');return;}
+  const l=layers.pop();stopSource(l);redo.push(l);renderLayers();flash('Stufe '+(layers.length+1)+' entfernt');
+}
+function doRedo(){
+  if(!redo.length)return;
+  const l=redo.pop();layers.push(l);
+  if(state==='play'||state==='dub')startSource(l);
+  renderLayers();
+}
+function clearAll(){
+  stopAll();layers.forEach(l=>l.gain.disconnect());
+  layers=[];redo=[];L=0;gen++;busy=0;capturing=false;chunks=[];
+  setState('empty');renderLayers();flash('Alles gelöscht');
+}
+
+let clearArm=0;
+const actions={
+  A(){switch(state){
+    case 'empty':startRec();break;
+    case 'rec':endRec();break;
+    case 'play':startDub();break;
+    case 'dub':endDub('play');break;
+    case 'stopped':startPlay();break;}},
+  B(){undo();},
+  C(){switch(state){
+    case 'rec':endRec();break;
+    case 'play':stopAll();setState('stopped');break;
+    case 'dub':endDub('stopped');stopAll();break;
+    case 'stopped':startPlay();break;}},
+  D(){const t=performance.now();
+    if(t-clearArm<2000){clearArm=0;clearAll();}
+    else{clearArm=t;flash('Nochmal D drücken zum Löschen');}}
+};
+async function trigger(k){
+  const el=document.querySelector(`.pedal[data-k="${k}"]`);
+  el.classList.add('hit');setTimeout(()=>el.classList.remove('hit'),120);
+  if(!ctx){flash('Bitte zuerst „Audio starten“ klicken');return;}
+  if(ctx.state!=='running')await ctx.resume();
+  actions[k]();
+}
+
+// ---------- Anzeige ----------
+const stateNames={empty:'LEER',rec:'AUFNAHME',play:'WIEDERGABE',dub:'OVERDUB',stopped:'GESTOPPT'};
+function setState(s){state=s;const el=$('stateTxt');el.className='state '+s;el.textContent=stateNames[s];renderLayers();}
+let msgT=0;
+function flash(t){$('msg').textContent=t;clearTimeout(msgT);msgT=setTimeout(()=>$('msg').textContent='',2500);}
+function renderLayers(){
+  $('layerInfo').textContent='Stufen: '+layers.length+(redo.length?` (+${redo.length} wiederherstellbar)`:'');
+  const box=$('layers');box.innerHTML='';
+  if(!layers.length){box.innerHTML='<div class="small">Noch keine Aufnahme.</div>';return;}
+  layers.forEach((l,i)=>{
+    const row=document.createElement('div');row.className='layer'+(l.muted?' muted':'');
+    const sp=document.createElement('span');sp.textContent='Stufe '+(i+1)+(i===0?' (Basis)':'');
+    const b=document.createElement('button');b.textContent=l.muted?'Einschalten':'Stumm';
+    b.onclick=()=>{l.muted=!l.muted;l.gain.gain.setTargetAtTime(l.muted?0:1,ctx.currentTime,0.01);renderLayers();};
+    row.append(sp,b);box.appendChild(row);
+  });
+}
+const meterData=new Float32Array(1024);
+function tick(){
+  if(ctx){
+    analyser.getFloatTimeDomainData(meterData);
+    let pk=0;for(let i=0;i<meterData.length;i++){const v=Math.abs(meterData[i]);if(v>pk)pk=v;}
+    $('meterBar').style.width=Math.min(100,pk*100)+'%';
+    if(state==='rec'){
+      $('len').textContent='Aufnahme: '+((nowF()-recStart)/sr).toFixed(1)+' s';$('pos').style.width='100%';
+    }else if(L>0){
+      $('len').textContent='Looplänge: '+(L/sr).toFixed(2)+' s';
+      if(state==='play'||state==='dub'){
+        const f=nowF()-Math.round((ctx.outputLatency||0)*sr);
+        $('pos').style.width=(((f-anchor)%L+L)%L/L*100)+'%';
+      }
+    }else{$('len').textContent='–';$('pos').style.width='0';}
+  }
+  requestAnimationFrame(tick);
+}
+
+// ---------- MIDI ----------
+let learning=null,midi=null;
+function sigText(s){
+  if(!s)return'nicht zugewiesen';
+  const t=s[0],[ch,n]=s.slice(1).split(':').map(Number);
+  return({n:'Note ',c:'CC ',p:'Program '}[t])+n+' · Kanal '+(ch+1);
+}
+function renderMap(){for(const k of 'ABCD')$('map'+k).textContent=sigText(map[k]);}
+function onMidi(e){
+  const d=e.data;if(!d||!d.length)return;
+  const type=d[0]&0xF0,ch=d[0]&0x0F,d1=d[1]||0,d2=d[2]||0;
+  let sig=null,press=false;
+  if(type===0x90){sig='n'+ch+':'+d1;press=d2>0;}
+  else if(type===0x80){sig='n'+ch+':'+d1;press=false;}
+  else if(type===0xB0){sig='c'+ch+':'+d1;press=cfg.ccAny?true:d2>=64;}
+  else if(type===0xC0){sig='p'+ch+':'+d1;press=true;}
+  else return;
+  $('midiInfo').textContent=midiDevText()+' · Zuletzt: '+sigText(sig)+(type===0xB0?' Wert '+d2:'');
+  if(!press)return;
+  if(learning){
+    for(const k in map)if(map[k]===sig)map[k]=null;
+    map[learning]=sig;store.set('map',map);
+    document.querySelectorAll('.learn').forEach(b=>{b.classList.remove('learning');b.textContent='MIDI lernen';});
+    flash('Taste '+learning+' = '+sigText(sig));learning=null;renderMap();return;
+  }
+  for(const k in map)if(map[k]===sig)trigger(k);
+}
+function midiDevText(){
+  if(!midi)return'MIDI aus';
+  const names=[...midi.inputs.values()].map(i=>i.name);
+  return names.length?'MIDI: '+names.join(', '):'Kein MIDI-Gerät gefunden (BlueBoard gekoppelt?)';
+}
+function hookMidi(){for(const i of midi.inputs.values())i.onmidimessage=onMidi;$('midiInfo').textContent=midiDevText();}
+if(navigator.requestMIDIAccess){
+  navigator.requestMIDIAccess({sysex:false}).then(a=>{midi=a;hookMidi();a.onstatechange=hookMidi;})
+    .catch(e=>{$('midiInfo').textContent='MIDI-Zugriff verweigert: '+e.message;});
+}else{
+  $('midiInfo').textContent='Dieser Browser kann kein Web MIDI (z. B. Safari/iPad). Bitte Chrome oder Edge am Mac/PC nutzen. Tastatur 1–4 funktioniert trotzdem.';
+}
+
+// ---------- Bedienelemente ----------
+$('startBtn').onclick=startAudio;
+document.querySelectorAll('.pedal').forEach(p=>p.addEventListener('click',()=>trigger(p.dataset.k)));
+document.querySelectorAll('.learn').forEach(b=>b.addEventListener('click',ev=>{
+  ev.stopPropagation();
+  document.querySelectorAll('.learn').forEach(x=>{x.classList.remove('learning');x.textContent='MIDI lernen';});
+  if(learning===b.dataset.k){learning=null;return;}
+  learning=b.dataset.k;b.classList.add('learning');b.textContent='Pedal treten …';
+}));
+$('redoBtn').onclick=doRedo;
+$('clearBtn').onclick=()=>{if(ctx)clearAll();};
+$('inSel').onchange=async e=>{cfg.inDev=e.target.value;saveCfg();if(ctx)await openInput(cfg.inDev);};
+$('outSel').onchange=async e=>{cfg.outDev=e.target.value;saveCfg();if(ctx&&ctx.setSinkId){try{await ctx.setSinkId(cfg.outDev)}catch(err){flash('Ausgang nicht verfügbar')}}};
+$('chSel').onchange=e=>{cfg.chan=Number(e.target.value);saveCfg();applyCfg();};
+$('inGainR').oninput=e=>{cfg.inGain=Number(e.target.value);saveCfg();applyCfg();};
+$('loopVolR').oninput=e=>{cfg.loopVol=Number(e.target.value);saveCfg();applyCfg();};
+$('latN').onchange=e=>{cfg.latMs=Math.max(0,Number(e.target.value)||0);saveCfg();};
+$('monChk').onchange=e=>{cfg.monitor=e.target.checked;saveCfg();applyCfg();};
+$('ccChk').onchange=e=>{cfg.ccAny=e.target.checked;saveCfg();};
+document.addEventListener('keydown',e=>{
+  if(['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName)||e.repeat)return;
+  const k={'1':'A','2':'B','3':'C','4':'D'}[e.key];
+  if(k){e.preventDefault();trigger(k);}
+});
+applyCfg();renderMap();renderLayers();requestAnimationFrame(tick);
+</script>
+</body>
+</html>
