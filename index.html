@@ -10,71 +10,217 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
-<title>BlueBoard Looper 4.3</title>
+<title>BlueBoard Looper 5.0</title>
 <style>
-:root{--bg:#111418;--card:#1b2027;--line:#2c333d;--txt:#e8ecf1;--dim:#8b95a3;--rec:#e5484d;--dub:#f5a524;--play:#30a46c;--stop:#5b6573;--acc:#3e8ef7}
+:root{--bg:#111418;--card:#1b2027;--card2:#151a20;--line:#2c333d;--txt:#e8ecf1;--dim:#8b95a3;--rec:#e5484d;--dub:#f5a524;--play:#30a46c;--stop:#5b6573;--acc:#3e8ef7}
 *{box-sizing:border-box}
-body{margin:0 auto;background:var(--bg);color:var(--txt);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;max-width:980px;
- padding:calc(14px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left))}
-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-h1{font-size:22px;margin:0}h2{font-size:16px;margin:0 0 8px}h3{font-size:15px;margin:14px 0 6px}
-#ver{color:var(--dim)}#helpBtn{margin-left:auto;font-weight:700;width:40px}
-#updBar{display:none;background:var(--play);color:#fff;border-radius:10px;padding:10px 14px;margin-bottom:12px;cursor:pointer;font-weight:600}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:10px}
-label{display:flex;flex-direction:column;gap:4px;color:var(--dim);font-size:13px}
-label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--txt)}
-select,input[type=number]{background:#0f1216;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px}
-button{background:#2a313b;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:14px;cursor:pointer}
+html,body{background:var(--bg)}
+body{margin:0 auto;color:var(--txt);font:14px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;max-width:1500px;
+ padding:calc(10px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left))}
+h2{font-size:15px;margin:0;font-weight:700}h3{font-size:14px;margin:12px 0 6px}
+button{background:#2a313b;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;white-space:nowrap}
 button:hover{border-color:var(--acc)}button:disabled{opacity:.4;cursor:default}
-.primary{background:var(--acc);border:none;font-weight:600;padding:10px 16px}
+.primary{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
+select,input[type=number],input[type=text]{background:#0f1216;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:5px 6px;font-size:13px;min-width:0}
+input[type=range]{min-width:0}
+label{display:flex;flex-direction:column;gap:3px;color:var(--dim);font-size:12px}
+label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--txt);font-size:13px}
 .small{font-size:12px;color:var(--dim)}
-.mrow{display:flex;align-items:center;gap:10px;margin-top:10px}
-.mlab{width:64px;font-size:13px;color:var(--dim)}
-.meter{flex:1;height:10px;background:#0f1216;border-radius:5px;overflow:hidden}
-#meterBar,#outBar{height:100%;width:0;background:linear-gradient(90deg,var(--play),var(--dub) 75%,var(--rec))}
-.lamp{width:92px;text-align:center;font-size:12px;font-weight:700;border-radius:6px;padding:2px 0;background:#0f1216;color:var(--dim);border:1px solid var(--line)}
-.lamp.ok{color:var(--play);border-color:var(--play)}.lamp.warn{background:var(--dub);color:#111;border-color:var(--dub)}.lamp.clip{background:var(--rec);color:#fff;border-color:var(--rec)}
-#midiInfo{margin-top:8px}
-.state{font-size:44px;font-weight:800;letter-spacing:2px;text-align:center;padding:6px;border-radius:10px}
-.state.empty{color:var(--dim)}.state.rec{color:#fff;background:var(--rec)}.state.dub{color:#111;background:var(--dub)}
-.state.play{color:#fff;background:var(--play)}.state.stopped{color:#fff;background:var(--stop)}
-.row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
-.bar{height:14px;background:#0f1216;border-radius:7px;overflow:hidden;margin-top:8px}
-#pos{height:100%;width:0;background:var(--acc)}
-#msg{min-height:20px;margin-top:8px;text-align:center;color:var(--dub)}
-.pedals{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
-@media(max-width:640px){.pedals{grid-template-columns:repeat(2,1fr)}}
-.pedal{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px;text-align:center;cursor:pointer;user-select:none;-webkit-user-select:none;transition:transform .05s}
-.pedal:active,.pedal.hit{transform:scale(.97);border-color:var(--acc)}
-.pedal .key{font-size:34px;font-weight:800}
-.pedal .fn{font-size:14px;min-height:38px}
-.pedal .map{font-size:11px;color:var(--dim);min-height:16px;margin:6px 0}
-.pedal button.learning{background:var(--dub);color:#111}
-.layer{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
-.layer.muted span{color:var(--dim);text-decoration:line-through}
-#bBtn0.on,#bBtn1.on{background:var(--play);border-color:var(--play);color:#fff}
-.beats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
-@media(max-width:640px){.beats{grid-template-columns:1fr}}
-.beat{border:2px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
-.beat.playing{border-color:var(--play)}
-.beat .badge{display:none;background:var(--play);color:#fff;border-radius:6px;padding:2px 8px;font-size:12px}
-.beat.playing .badge{display:inline}
-.filebtn{display:inline-block;cursor:pointer;color:#fff;background:var(--acc);border-radius:8px;padding:8px 12px;font-size:14px}
-.dots{display:flex;gap:8px}
-.dot{width:16px;height:16px;border-radius:50%;background:#0f1216;border:1px solid var(--line)}
-.dot.on{background:var(--acc);border-color:var(--acc)}.dot.one.on{background:var(--dub);border-color:var(--dub)}
-#help{display:none}#help.open{display:block}
-#help p,#help li{color:#c9d1db}
 .hide{display:none!important}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
+.ch{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.ch .sp{flex:1}
+/* Kopfzeile */
+.top{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.top h1{font-size:18px;margin:0;white-space:nowrap}
+#ver{color:var(--dim);font-size:13px}
+.meters{display:flex;flex-direction:column;gap:4px;flex:0 1 440px;width:440px;margin-left:16px}
+.mrow{display:flex;align-items:center;gap:8px}
+.mlab{width:56px;font-size:11px;color:var(--dim);text-align:right}
+.meter{flex:1 1 auto;min-width:80px;height:9px;background:#262d36;border:1px solid #333b46;border-radius:5px;overflow:hidden}
+#meterBar,#outBar{height:100%;width:0;background:linear-gradient(90deg,var(--play),var(--dub) 75%,var(--rec))}
+.lamp{width:84px;text-align:center;font-size:11px;font-weight:700;border-radius:6px;padding:1px 0;background:#0f1216;color:var(--dim);border:1px solid var(--line)}
+.lamp.ok{color:var(--play);border-color:var(--play)}.lamp.warn{background:var(--dub);color:#111;border-color:var(--dub)}.lamp.clip{background:var(--rec);color:#fff;border-color:var(--rec)}
+.topr{margin-left:auto;display:flex;align-items:center;gap:8px}
+.pill{font-size:12px;color:var(--dim);border:1px solid var(--line);border-radius:999px;padding:3px 10px;white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis}
+.pill.ok{color:var(--play);border-color:var(--play)}
+#startBtn{padding:7px 14px}
+#updBar{display:none;background:var(--play);color:#fff;border-radius:10px;padding:8px 14px;margin-bottom:10px;cursor:pointer;font-weight:600}
+/* Hauptraster */
+.main{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:10px}
+.span2{grid-column:1/-1}
+/* Looper-Status */
+.state{font-size:44px;font-weight:800;letter-spacing:2px;text-align:center;padding:4px;border-radius:10px;line-height:1.25}
+.state.empty{color:var(--dim);background:var(--card2)}.state.rec{color:#fff;background:var(--rec)}.state.dub{color:#111;background:var(--dub)}
+.state.play{color:#fff;background:var(--play)}.state.stopped{color:#fff;background:var(--stop)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap}
+.bar{height:12px;background:#0f1216;border-radius:6px;overflow:hidden;margin-top:6px}
+#pos{height:100%;width:0;background:var(--acc)}
+#msg{min-height:18px;margin-top:4px;text-align:center;color:var(--dub);font-size:13px}
+.vols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px}
+/* Pedale */
+.pedals{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:2px 2px 10px}
+.pedal{position:relative;background:linear-gradient(180deg,#434c59 0%,#2b323c 55%,#232931 100%);border:1px solid #556070;border-radius:16px;
+ box-shadow:0 8px 0 #0a0c0f,0 12px 18px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.18),inset 0 -2px 0 rgba(0,0,0,.25);
+ padding:10px 6px 12px;min-height:180px;text-align:center;cursor:pointer;user-select:none;-webkit-user-select:none;
+ transform:translateY(0);transition:transform .07s,box-shadow .07s,background .1s;display:flex;flex-direction:column;justify-content:center;gap:4px}
+.pedal:hover{border-color:#7a8698}
+.pedal.down{transform:translateY(7px);box-shadow:0 1px 0 #0a0c0f,0 2px 5px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.08),inset 0 2px 6px rgba(0,0,0,.35);
+ background:linear-gradient(180deg,#3a4e6e 0%,#2a3a55 60%,#22304a 100%);border-color:var(--acc)}
+.pedal .key{font-size:36px;font-weight:800;line-height:1;text-shadow:0 2px 0 rgba(0,0,0,.45)}
+.pedal .fn{font-size:14px;font-weight:600}
+.pedal .fn2{font-size:12px;color:#a9b3c1}
+.led{width:12px;height:12px;border-radius:50%;background:#1a1e24;margin:0 auto 4px;box-shadow:inset 0 1px 2px #000}
+.led.red{background:var(--rec);box-shadow:0 0 10px var(--rec)}.led.amber{background:var(--dub);box-shadow:0 0 10px var(--dub)}
+.led.green{background:var(--play);box-shadow:0 0 10px var(--play)}.led.blue{background:var(--acc);box-shadow:0 0 10px var(--acc)}
+/* Drums */
+#dots{display:flex;gap:6px}
+.dot{width:14px;height:14px;border-radius:50%;background:#0f1216;border:1px solid var(--line)}
+.dot.on{background:var(--acc);border-color:var(--acc)}.dot.one.on{background:var(--dub);border-color:var(--dub)}
+#bBtn0.on,#bBtn1.on{background:var(--play);border-color:var(--play);color:#fff}
+.beats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.beat{border:2px solid var(--line);border-radius:10px;padding:8px 10px;display:grid;grid-template-columns:auto minmax(0,1.4fr) minmax(0,1.6fr) auto minmax(0,1fr);gap:8px;align-items:center}
+.beat.playing{border-color:var(--play)}
+.beat .bn{font-weight:700;font-size:14px;white-space:nowrap}
+.beat.playing .bn{color:var(--play)}
+.beat .tempo{display:flex;flex-direction:column;gap:2px}
+.beat .tempo span{font-size:12px;color:var(--txt);white-space:nowrap}
+.beat .btns{display:flex;gap:4px}
+.beat .btns button{padding:5px 7px}
+.beat .vol{display:flex;flex-direction:column;gap:2px;font-size:11px;color:var(--dim)}
+#drumInfo{margin-top:6px}
+/* Stufen & Speichern */
+#layers{display:flex;flex-wrap:wrap;gap:6px;min-height:34px;align-content:flex-start}
+.chip{display:flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:4px 6px 4px 10px;font-size:13px}
+.chip.muted{color:var(--dim);text-decoration:line-through}
+.chip button{padding:3px 7px;font-size:12px}
+.save{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.save .col{display:flex;flex-direction:column;gap:6px;min-width:0}
+.line{display:flex;gap:6px;align-items:center}
+.line>*:first-child{flex:1}
+#sesList{max-height:96px;overflow:auto;border-top:1px solid var(--line)}
+.ses{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--line)}
+.ses b{font-size:13px}.ses .small{display:block}
+.ses button{padding:3px 7px;font-size:12px;margin-left:4px}
+/* Overlays: Setup und Hilfe */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;z-index:10;overflow:auto;padding:30px 16px}
+.overlay.open{display:block}
+.sheet{max-width:1100px;margin:0 auto;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
+.sheet .ch h2{font-size:18px}
+.sgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.sgrid .card{display:flex;flex-direction:column;gap:8px}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.maprow{display:grid;grid-template-columns:28px 1fr auto;gap:8px;align-items:center}
+.maprow b{font-size:16px}
+.learn.learning{background:var(--dub);color:#111}
+.filerow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.maprow{border-radius:8px;padding:2px 4px;transition:background .1s}.maprow.down{background:#2a3a55}
+.filebtn{display:inline-block;cursor:pointer;color:#fff;background:var(--acc);border-radius:8px;padding:6px 10px;font-size:13px;white-space:nowrap}
+#help p,#help li{color:#c9d1db}
+#help ul{padding-left:20px}
+@media(max-width:1000px){.main,.save,.sgrid,.beats{grid-template-columns:1fr}.beat{grid-template-columns:auto 1fr 1fr}}
 </style>
 </head>
 <body>
-<header><h1>BlueBoard Looper</h1><span id="ver"></span><button id="helpBtn" aria-label="Hilfe">?</button></header>
-<div id="updBar">Neue Version bereit – hier tippen zum Aktualisieren (aktuelle Loops gehen dabei verloren)</div>
+<div class="top">
+  <h1>BlueBoard Looper</h1><span id="ver"></span>
+  <div class="meters">
+    <div class="mrow"><span class="mlab">Eingang</span><div class="meter"><div id="meterBar"></div></div><span class="lamp" id="inLamp">OK</span></div>
+    <div class="mrow"><span class="mlab">Ausgang</span><div class="meter"><div id="outBar"></div></div><span class="lamp" id="outLamp">OK</span></div>
+  </div>
+  <div class="topr">
+    <span class="pill" id="midiPill">MIDI …</span>
+    <button id="startBtn" class="primary">▶ Audio starten</button>
+    <button id="setupBtn">⚙ Setup</button>
+    <button id="helpBtn" aria-label="Hilfe">?</button>
+  </div>
+</div>
+<div id="updBar">Neue Version bereit – hier tippen zum Aktualisieren (aktueller Loop und Mitschnitt gehen dabei verloren)</div>
 
-<section class="card" id="help">
-  <h2>Hilfe</h2>
+<div class="main">
+  <section class="card">
+    <div id="stateTxt" class="state empty">LEER</div>
+    <div class="bar"><div id="pos"></div></div>
+    <div class="row"><span id="len">–</span><span id="layerInfo">Stufen: 0</span></div>
+    <div id="msg"></div>
+    <div class="vols">
+      <label><span>Loops <span id="loopVolT"></span></span><input type="range" id="loopVolR" min="0" max="4" step="0.05"></label>
+      <label>Drums gesamt<input type="range" id="drumVolR" min="0" max="2" step="0.05"></label>
+    </div>
+  </section>
+  <section class="pedals">
+    <div class="pedal" data-k="A"><div class="led" id="ledA"></div><div class="key">A</div><div class="fn">Aufnahme · Play · Overdub</div></div>
+    <div class="pedal" data-k="B"><div class="led" id="ledB"></div><div class="key">B</div><div class="fn">Letzte Stufe zurück</div></div>
+    <div class="pedal" data-k="C"><div class="led" id="ledC"></div><div class="key">C</div><div class="fn">Stop / Play</div><div class="fn2">2× = alles löschen</div></div>
+    <div class="pedal" data-k="D"><div class="led" id="ledD"></div><div class="key">D</div><div class="fn">Beat 1 / Stop</div><div class="fn2">2× = Beat wechseln</div></div>
+  </section>
+
+  <section class="card span2">
+    <div class="ch"><h2>Drums</h2><div id="dots"><div class="dot one"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+      <span class="sp"></span><button id="bBtn0">Beat 1</button><button id="bBtn1">Beat 2</button><button id="dStop" class="hide">Stop</button></div>
+    <div class="beats" id="beats"></div>
+    <div id="drumInfo" class="small"></div>
+  </section>
+
+  <section class="card">
+    <div class="ch"><h2>Stufen</h2><span class="sp"></span><button id="redoBtn">↻ Wiederherstellen</button><button id="clearBtn">Alles löschen</button></div>
+    <div id="layers"></div>
+  </section>
+  <section class="card">
+    <div class="save">
+      <div class="col">
+        <div class="ch" style="margin:0"><h2>Mitschnitt</h2></div>
+        <div class="line"><select id="backSel"></select><button id="saveMixBtn" class="primary">Als WAV speichern</button></div>
+        <span id="recInfo" class="small"></span>
+      </div>
+      <div class="col">
+        <div class="ch" style="margin:0"><h2>Loops</h2></div>
+        <div class="line"><input type="text" id="sesName" placeholder="Name (optional)"><button id="saveSesBtn" class="primary">Sichern</button><button id="loopWavBtn" title="Aktuellen Loop als WAV speichern (ohne Drums)">WAV</button></div>
+        <div id="sesList"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="overlay" id="setup"><div class="sheet">
+  <div class="ch"><h2>Setup</h2><span class="sp"></span><button id="setupClose" class="primary">Fertig</button></div>
+  <div class="sgrid">
+    <section class="card"><h2>Audio</h2>
+      <span id="audioInfo" class="small">Audio aus – oben „Audio starten“ klicken</span>
+      <div class="f2">
+        <label>Eingang (Audio-Interface)<select id="inSel"></select></label>
+        <label>Eingangskanal<select id="chSel"><option value="0">1 (links)</option><option value="1">2 (rechts)</option><option value="-1">Mix 1+2</option></select></label>
+        <label id="outWrap">Ausgang<select id="outSel"></select></label>
+        <label>Latenzausgleich (ms)<input type="number" id="latN" min="0" max="500" step="1"></label>
+        <label>Eingangspegel<input type="range" id="inGainR" min="0" max="4" step="0.05"></label>
+      </div>
+      <label class="chk"><input type="checkbox" id="monChk"> Eingang durch die App hören (Monitor) – nur ohne THRU-Verkabelung</label>
+      <div class="small">Overdubs klingen zu spät → Latenzausgleich erhöhen, zu früh → verringern.</div>
+    </section>
+    <section class="card"><h2>Pedale (MIDI)</h2>
+      <div id="midiInfo" class="small"></div>
+      <div class="maprow"><b>A</b><span id="mapA" class="small"></span><button class="learn" data-k="A">MIDI lernen</button></div>
+      <div class="maprow"><b>B</b><span id="mapB" class="small"></span><button class="learn" data-k="B">MIDI lernen</button></div>
+      <div class="maprow"><b>C</b><span id="mapC" class="small"></span><button class="learn" data-k="C">MIDI lernen</button></div>
+      <div class="maprow"><b>D</b><span id="mapD" class="small"></span><button class="learn" data-k="D">MIDI lernen</button></div>
+      <label class="chk"><input type="checkbox" id="ccChk"> CC: jeder Wert löst aus (Toggle-Modus)</label>
+      <div class="small">BlueBoard beim Einschalten mit gedrückter Taste C starten (Modus 2, sendet CC 20–23 – voreingestellt).</div>
+    </section>
+    <section class="card"><h2>Mitschnitt</h2>
+      <label>Reicht maximal zurück<select id="recMinSel"><option value="1">1 Minute</option><option value="2">2 Minuten</option><option value="5">5 Minuten</option><option value="10">10 Minuten</option><option value="15">15 Minuten</option></select></label>
+      <label class="chk"><input type="checkbox" id="recDrumsChk"> Drums im Mitschnitt</label>
+      <div class="small">Läuft nach „Audio starten“ ständig mit (Bass, Loops, Drums). Ca. 5,8 MB Arbeitsspeicher je Minute. Ändern verwirft den bisherigen Mitschnitt.</div>
+    </section>
+    <section class="card"><h2>Drum-Loop-Dateien</h2>
+      <div class="small">Lizenzfreie WAV- oder MP3-Loops (z. B. von looperman.com) für Beat 1 oder 2 laden. Steht das Tempo im Dateinamen („95 BPM“), wird die Taktzahl erkannt.</div>
+      <div id="beatFiles" style="display:flex;flex-direction:column;gap:8px"></div>
+    </section>
+  </div>
+</div></div>
+
+<div class="overlay" id="help"><div class="sheet">
+  <div class="ch"><h2>Hilfe</h2><span class="sp"></span><button id="helpClose" class="primary">Schließen</button></div>
+
   <h3>Bedienung</h3>
   <ul>
     <li><b>A</b>: 1. Druck Aufnahme, 2. Druck Loop schließen und abspielen, danach Overdub an/aus. Jeder Overdub ist eine eigene Stufe.</li>
@@ -82,11 +228,12 @@ button:hover{border-color:var(--acc)}button:disabled{opacity:.4;cursor:default}
     <li><b>C</b>: einmal = Stop/Play (Loop und Drums gemeinsam), zweimal schnell = alles löschen.</li>
     <li><b>D</b>: einmal = Beat 1 starten bzw. laufende Drums stoppen; zweimal schnell = zwischen Beat 1 und Beat 2 wechseln (genau am nächsten Taktanfang). Sind die Drums aus, startet D zweimal direkt Beat 2. Weil die App kurz auf einen zweiten Tritt wartet, stoppt D einmal mit knapp einer halben Sekunde Verzögerung.</li>
     <li><b>Zwei Beats:</b> Jeder Beat hat eigenes Pattern bzw. eigene Loop-Datei, eigenes Tempo und eigene Lautstärke. Ist ein Loop aufgenommen, laufen beide Beats in dessen Tempo; hat ein Beat etwa das halbe oder doppelte Tempo, bleibt dieses Verhältnis erhalten (z. B. Halftime-Teil).</li>
-    <li>Ohne Pedal: Tasten 1–4 auf der Tastatur oder Kacheln anklicken.</li>
-    <li><b>Mitschnitt:</b> läuft nach „Audio starten“ immer mit. Unter „Speichern“ wählst du, wie weit er maximal zurückreicht (1–15 Minuten, ca. 5,8 MB Arbeitsspeicher je Minute) und was gespeichert wird: die letzten 4–64 Takte (mit Drums oder Loop) oder die letzten Minuten. Die WAV-Datei landet im Download-Ordner. Ändern der Puffer-Länge verwirft den bisherigen Mitschnitt.</li>
+    <li>Ohne Pedal: Tasten 1–4 auf der Tastatur oder die Kacheln A–D anklicken.</li>
+    <li><b>Setup</b> (⚙ oben rechts): Audio-Geräte, Eingangspegel, Latenz, MIDI-Tasten, Mitschnitt-Länge und Drum-Loop-Dateien – einmal einstellen, wird gespeichert.</li>
+    <li><b>Mitschnitt:</b> läuft nach „Audio starten“ immer mit. Im Setup wählst du, wie weit er maximal zurückreicht (1–15 Minuten, ca. 5,8 MB Arbeitsspeicher je Minute), auf dem Hauptbildschirm unter „Mitschnitt“, was gespeichert wird: die letzten 4–64 Takte (mit Drums oder Loop) oder die letzten Minuten. Die WAV-Datei landet im Download-Ordner. Ändern der Puffer-Länge verwirft den bisherigen Mitschnitt.</li>
     <li><b>Loops sichern:</b> speichert Stufen, Tempo und beide Beats im Browser. „Laden“ holt den Loop zurück (gestoppt) – C oder A startet ihn, Overdubs gehen wie gewohnt. „WAV“ speichert einen Durchlauf des Loops ohne Drums.</li>
     <li><b>Takt-Synchronisation:</b> Laufen die Drums, beginnt und endet die erste Aufnahme immer an einem Taktanfang. Tritt A irgendwann im Takt vor dem Einsatz („BEREIT“, Countdown in Schlägen) – die Aufnahme startet am nächsten Taktanfang. Ein Tritt bis ein Viertel nach dem Taktanfang (also etwas zu spät) zählt noch zu diesem Takt. Zum Beenden A im letzten Takt treten: Die Aufnahme läuft bis zum Taktende und der Loop schließt sich nahtlos. Danach ist das Tempo an den Loop gebunden. Startest du die Drums erst zu einem fertigen Loop, passt sich das Tempo der Drums dem Loop an.</li>
-    <li><b>Eigene Drum-Loops:</b> lizenzfreie WAV- oder MP3-Loops (z. B. von looperman.com) beim gewünschten Beat mit „Loop-Datei laden“ übernehmen. Steht das Tempo im Dateinamen (z. B. „Funk 95 BPM“), erkennt die App die Taktzahl selbst; sonst unter „Takte“ korrigieren. Die Dateien bleiben nur in diesem Browser auf diesem Gerät.</li>
+    <li><b>Eigene Drum-Loops:</b> lizenzfreie WAV- oder MP3-Loops (z. B. von looperman.com) im Setup unter „Drum-Loop-Dateien“ für Beat 1 oder 2 laden. Steht das Tempo im Dateinamen (z. B. „Funk 95 BPM“), erkennt die App die Taktzahl selbst; sonst unter „Takte“ korrigieren. Die Dateien bleiben nur in diesem Browser auf diesem Gerät.</li>
     <li>BlueBoard: beim Einschalten <b>C</b> gedrückt halten („MIDI over Bluetooth mode 2“), am Mac über Audio-MIDI-Setup → MIDI-Studio → Bluetooth verbinden. Die Tasten senden CC 20–23 und sind voreingestellt.</li>
     <li>Klingen Overdubs zu spät, den Latenzausgleich erhöhen; zu früh, verringern.</li>
   </ul>
@@ -103,76 +250,12 @@ button:hover{border-color:var(--acc)}button:disabled{opacity:.4;cursor:default}
   <h3>Über diese App</h3>
   <p>Private, kostenlose App ohne Werbung. Kontakt und Rückmeldungen: <a id="kontakt" style="color:var(--acc)"></a></p>
   <p class="small">Version <span id="ver2"></span></p>
-</section>
 
-<section class="card">
-  <button id="startBtn" class="primary">▶ Audio starten</button>
-  <span id="audioInfo" class="small" style="margin-left:10px">Audio aus</span>
-  <div class="grid">
-    <label>Eingang (Audio-Interface)<select id="inSel"></select></label>
-    <label>Eingangskanal<select id="chSel"><option value="0">1 (links)</option><option value="1">2 (rechts)</option><option value="-1">Mix 1+2</option></select></label>
-    <label id="outWrap">Ausgang<select id="outSel"></select></label>
-    <label>Eingangspegel <input type="range" id="inGainR" min="0" max="4" step="0.05"></label>
-    <label>Loop-Lautstärke <span id="loopVolT"></span><input type="range" id="loopVolR" min="0" max="4" step="0.05"></label>
-    <label>Latenzausgleich (ms)<input type="number" id="latN" min="0" max="500" step="1"></label>
-    <label class="chk"><input type="checkbox" id="monChk"> Eingang durch die App hören (Monitor)</label>
-    <label class="chk"><input type="checkbox" id="ccChk"> CC: jeder Wert löst aus (Toggle-Modus)</label>
-  </div>
-  <div class="mrow"><span class="mlab">Eingang</span><div class="meter"><div id="meterBar"></div></div><span class="lamp" id="inLamp">OK</span></div>
-  <div class="mrow"><span class="mlab">Ausgang</span><div class="meter"><div id="outBar"></div></div><span class="lamp" id="outLamp">OK</span></div>
-  <div class="small" id="meterHint">Eingang: Signal vom Bass (nach Eingangspegel). Ausgang: Loops + Drums. Rot = übersteuert, Gelb = Begrenzer arbeitet stark.</div>
-  <div id="midiInfo" class="small"></div>
-</section>
-
-<section class="card">
-  <div id="stateTxt" class="state empty">LEER</div>
-  <div class="row"><span id="len">–</span><span id="layerInfo">Stufen: 0</span></div>
-  <div class="bar"><div id="pos"></div></div>
-  <div id="msg"></div>
-</section>
-
-<section class="pedals">
-  <div class="pedal" data-k="A"><div class="key">A</div><div class="fn">Aufnahme → Play → Overdub</div><div class="map" id="mapA"></div><button class="learn" data-k="A">MIDI lernen</button></div>
-  <div class="pedal" data-k="B"><div class="key">B</div><div class="fn">Letzte Stufe rückgängig</div><div class="map" id="mapB"></div><button class="learn" data-k="B">MIDI lernen</button></div>
-  <div class="pedal" data-k="C"><div class="key">C</div><div class="fn">Stop / Play<br>2× = alles löschen</div><div class="map" id="mapC"></div><button class="learn" data-k="C">MIDI lernen</button></div>
-  <div class="pedal" data-k="D"><div class="key">D</div><div class="fn">Beat 1 / Stop<br>2× = Beat wechseln</div><div class="map" id="mapD"></div><button class="learn" data-k="D">MIDI lernen</button></div>
-</section>
-
-<section class="card">
-  <div class="row" style="margin-top:0"><h2 style="margin:0">Drumcomputer</h2><div class="dots" id="dots"><div class="dot one"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-    <span><button id="bBtn0">Beat 1</button> <button id="bBtn1">Beat 2</button> <button id="dStop" class="hide">Stop</button></span></div>
-  <div class="small" style="margin-top:6px">Pedal D: einmal = Beat 1 starten bzw. Drums stoppen · zweimal = zwischen Beat 1 und 2 wechseln (am Taktanfang)</div>
-  <div class="beats" id="beats"></div>
-  <div class="grid"><label>Drums gesamt (Lautstärke) <input type="range" id="drumVolR" min="0" max="2" step="0.05"></label></div>
-  <div id="drumInfo" class="small" style="margin-top:8px"></div>
-</section>
-
-<section class="card">
-  <h2>Speichern</h2>
-  <h3 style="margin-top:4px">Mitschnitt (Lied)</h3>
-  <div class="small">Die App nimmt im Hintergrund ständig alles auf (Bass, Loops und auf Wunsch Drums). Gefällt dir etwas, speicherst du hinterher die letzten Takte oder Minuten als WAV-Datei.</div>
-  <div class="grid">
-    <label>Mitschnitt reicht maximal zurück<select id="recMinSel"><option value="1">1 Minute</option><option value="2">2 Minuten</option><option value="5">5 Minuten</option><option value="10">10 Minuten</option><option value="15">15 Minuten</option></select></label>
-    <label>Speichern<select id="backSel"></select></label>
-    <label class="chk"><input type="checkbox" id="recDrumsChk"> Drums im Mitschnitt</label>
-  </div>
-  <div class="row"><span id="recInfo" class="small"></span><button id="saveMixBtn" class="primary">Mitschnitt als WAV speichern</button></div>
-  <h3>Loops</h3>
-  <div class="small">Sichert den aktuellen Loop mit allen Stufen und beiden Beat-Einstellungen zum späteren Weiterspielen (nur auf diesem Gerät).</div>
-  <div class="row"><input type="text" id="sesName" placeholder="Name (optional)" style="flex:1;min-width:160px;background:#0f1216;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:8px">
-    <span><button id="saveSesBtn" class="primary">Loop sichern</button> <button id="loopWavBtn">Loop als WAV</button></span></div>
-  <div id="sesList" style="margin-top:8px"></div>
-</section>
-
-<section class="card">
-  <h2>Stufen (Layer)</h2>
-  <div id="layers"><div class="small">Noch keine Aufnahme.</div></div>
-  <div class="row"><button id="redoBtn">↻ Stufe wiederherstellen</button><button id="clearBtn">Alles löschen</button></div>
-</section>
+</div></div>
 
 <script>
 "use strict";
-const VERSION='4.3';
+const VERSION='5.0';
 const KONTAKT_URL='https://github.com/app-laden';
 const $=id=>document.getElementById(id);
 $('ver').textContent=VERSION;$('ver2').textContent=VERSION;
@@ -238,7 +321,7 @@ async function startAudio(){
     await openInput(cfg.inDev);
     await listDevices();
     if(cfg.outDev&&ctx.setSinkId){try{await ctx.setSinkId(cfg.outDev)}catch(e){}}
-    $('startBtn').textContent='Audio läuft';
+    $('startBtn').textContent='● Audio läuft';$('startBtn').classList.remove('primary');$('startBtn').style.color='var(--play)';
     $('audioInfo').textContent=`${sr} Hz · Ausgangslatenz ca. ${Math.round(((ctx.baseLatency||0)+(ctx.outputLatency||0))*1000)} ms · Aufnahme: ${capMode}`;
     await prepareLoops();
     updateDrumUI();
@@ -481,9 +564,16 @@ const actions={
   C(){pressC();},
   D(){pressD();}
 };
+const held={};
+function pressVis(k,hold){
+  const el=document.querySelector(`.pedal[data-k="${k}"]`);if(!el)return;
+  el.classList.add('down');clearTimeout(el._t);
+  const mr=$('map'+k)&&$('map'+k).parentElement;if(mr){mr.classList.add('down');setTimeout(()=>mr.classList.remove('down'),400);}
+  if(!hold&&!held[k])el._t=setTimeout(()=>el.classList.remove('down'),160);
+}
+function releaseVis(k){held[k]=false;const el=document.querySelector(`.pedal[data-k="${k}"]`);if(el){clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('down'),60);}}
 async function trigger(k){
-  const el=document.querySelector(`.pedal[data-k="${k}"]`);
-  el.classList.add('hit');setTimeout(()=>el.classList.remove('hit'),120);
+  pressVis(k);
   if(!ctx){flash('Bitte zuerst „Audio starten“ klicken');return;}
   if(ctx.state!=='running')await ctx.resume();
   actions[k]();
@@ -775,17 +865,20 @@ function tap(slot){
   const a=taps[slot];if(a.length>=2){const d=(a[a.length-1]-a[0])/(a.length-1);setBpm(slot,60000/d);}
 }
 function buildBeatUI(){
-  const box=$('beats');box.innerHTML='';
+  const box=$('beats');box.innerHTML='';const fb=$('beatFiles');fb.innerHTML='';
   for(const i of [0,1]){
     const d=document.createElement('div');d.className='beat';d.id='beatBox'+i;
-    d.innerHTML=`<div class="row" style="margin-top:0"><h3 style="margin:0">Beat ${i+1}</h3><span class="badge">spielt</span></div>
-      <label>Beat<select id="patSel${i}"></select></label>
-      <label>Tempo <span id="bpmT${i}"></span><input type="range" id="bpmR${i}" min="40" max="240" step="1"></label>
-      <div class="row"><span><button id="tap${i}">Tap</button> <button id="minus${i}">−1</button> <button id="plus${i}">+1</button></span></div>
-      <label id="barsWrap${i}" class="hide">Takte in der Loop-Datei<select id="bars${i}"><option>1</option><option>2</option><option>4</option><option>8</option><option>16</option></select></label>
-      <label>Lautstärke <input type="range" id="vol${i}" min="0" max="2" step="0.05"></label>
-      <div class="row"><label class="filebtn">Loop-Datei laden<input type="file" id="file${i}" accept="audio/*,.wav,.mp3,.m4a,.aif,.aiff" class="hide"></label><button id="del${i}" class="hide">Datei entfernen</button></div>`;
+    d.innerHTML=`<span class="bn">Beat ${i+1}</span>
+      <select id="patSel${i}" aria-label="Beat ${i+1}"></select>
+      <div class="tempo"><span id="bpmT${i}"></span><input type="range" id="bpmR${i}" min="40" max="240" step="1" aria-label="Tempo"></div>
+      <div class="btns"><button id="minus${i}" title="Tempo −1">−</button><button id="plus${i}" title="Tempo +1">+</button><button id="tap${i}" title="Tempo antippen">Tap</button></div>
+      <div class="vol">Lautstärke<input type="range" id="vol${i}" min="0" max="2" step="0.05"></div>`;
     box.appendChild(d);
+    const f=document.createElement('div');f.className='filerow';
+    f.innerHTML=`<b>Beat ${i+1}</b><label class="filebtn">Loop-Datei laden<input type="file" id="file${i}" accept="audio/*,.wav,.mp3,.m4a,.aif,.aiff" class="hide"></label>
+      <label id="barsWrap${i}" class="hide" style="flex-direction:row;align-items:center;gap:6px">Takte<select id="bars${i}"><option>1</option><option>2</option><option>4</option><option>8</option><option>16</option></select></label>
+      <button id="del${i}" class="hide">Datei entfernen</button>`;
+    fb.appendChild(f);
   }
   for(const i of [0,1]){
     $('patSel'+i).onchange=async e=>{
@@ -895,13 +988,13 @@ function sesInfo(s){
 async function loadSessions(){try{sessions=await DB.all('sessions');}catch(e){sessions=[];}renderSessions();}
 function renderSessions(){
   const box=$('sesList');box.innerHTML='';
-  if(!sessions.length){box.innerHTML='<div class="small">Noch keine Loops gesichert.</div>';return;}
+  if(!sessions.length){box.innerHTML='<div class="small" style="padding-top:4px">Noch keine Loops gesichert.</div>';return;}
   sessions.slice().sort((a,b)=>b.date-a.date).forEach(s=>{
-    const row=document.createElement('div');row.className='layer';
-    const t=document.createElement('span');t.innerHTML='<b></b><br><span class="small"></span>';
+    const row=document.createElement('div');row.className='ses';
+    const t=document.createElement('span');t.innerHTML='<b></b><span class="small"></span>';
     t.querySelector('b').textContent=s.name;t.querySelector('.small').textContent=sesInfo(s);
-    const bt=document.createElement('span');
-    const mk=(txt,fn)=>{const b=document.createElement('button');b.textContent=txt;b.onclick=fn;b.style.marginLeft='6px';bt.appendChild(b);return b;};
+    const bt=document.createElement('span');bt.style.whiteSpace='nowrap';
+    const mk=(txt,fn)=>{const b=document.createElement('button');b.textContent=txt;b.onclick=fn;bt.appendChild(b);return b;};
     mk('Laden',()=>loadSession(s));
     mk('WAV',()=>exportSessionWav(s));
     const del=mk('Löschen',async()=>{
@@ -992,17 +1085,18 @@ function flash(t){$('msg').textContent=t;clearTimeout(msgT);msgT=setTimeout(()=>
 function renderLayers(){
   $('layerInfo').textContent='Stufen: '+layers.length+(redo.length?` (+${redo.length} wiederherstellbar)`:'');
   const box=$('layers');box.innerHTML='';
-  if(!layers.length){box.innerHTML='<div class="small">Noch keine Aufnahme.</div>';return;}
+  if(!layers.length){box.innerHTML='<span class="small">Noch keine Aufnahme.</span>';return;}
   layers.forEach((l,i)=>{
-    const row=document.createElement('div');row.className='layer'+(l.muted?' muted':'');
-    const sp=document.createElement('span');sp.textContent='Stufe '+(i+1)+(i===0?' (Basis)':'');
-    const b=document.createElement('button');b.textContent=l.muted?'Einschalten':'Stumm';
+    const c=document.createElement('span');c.className='chip'+(l.muted?' muted':'');
+    const t=document.createElement('span');t.textContent=i===0?'1 Basis':String(i+1);
+    const b=document.createElement('button');b.textContent=l.muted?'an':'stumm';
     b.onclick=()=>{l.muted=!l.muted;l.gain.gain.setTargetAtTime(l.muted?0:1,ctx.currentTime,0.01);renderLayers();};
-    row.append(sp,b);box.appendChild(row);
+    c.append(t,b);box.appendChild(c);
   });
 }
 const meterData=new Float32Array(1024);
 const lampT={inClip:-1e9,outClip:-1e9,outWarn:-1e9};
+function setLed(id,c){const el=$(id);const v='led'+(c?' '+c:'');if(el.className!==v)el.className=v;}
 function setLamp(id,cls,txt){const el=$(id);const t=cls==='ok'?'OK':txt;if(el.textContent!==t)el.textContent=t;if(el.className!=='lamp '+cls)el.className='lamp '+cls;}
 const dotEls=[...document.querySelectorAll('#dots .dot')];
 function tick(){
@@ -1033,6 +1127,10 @@ function tick(){
       $('len').textContent='Looplänge: '+(L/sr).toFixed(2)+' s'+(bars?' · '+bars+' Takt'+(bars>1?'e':''):'');
       $('pos').style.width=(state==='play'||state==='dub')?(((f-anchor)%L+L)%L/L*100)+'%':'0';
     }else{$('len').textContent='–';$('pos').style.width='0';}
+    setLed('ledA',cls==='rec'?'red':cls==='dub'?'amber':state==='play'?'green':'');
+    setLed('ledB',redo.length?'blue':'');
+    setLed('ledC',state==='play'||state==='dub'?'green':state==='stopped'?'amber':'');
+    setLed('ledD',active?(active.slot===0?'green':'blue'):'');
     const st=$('stateTxt');if(st.textContent!==lab)st.textContent=lab;if(st.className!=='state '+cls)st.className='state '+cls;
     let beat=-1;
     if(active){const ins=insts.find(x=>x.stopAt!==Infinity&&f<x.stopAt&&f>=x.startAt)||active;const bar=curBar(ins.slot);const ph=(((f-ins.origin)%bar)+bar)%bar;if(f>=ins.startAt)beat=Math.floor(ph/bar*4);}
@@ -1059,32 +1157,43 @@ function onMidi(e){
   else if(type===0xC0){sig='p'+ch+':'+d1;press=true;}
   else return;
   $('midiInfo').textContent=midiDevText()+' · Zuletzt: '+sigText(sig)+(type===0xB0?' Wert '+d2:'');
-  if(!press)return;
+  if(!press){for(const k in map)if(map[k]===sig&&held[k])releaseVis(k);return;}
   if(learning){
     for(const k in map)if(map[k]===sig)map[k]=null;
     map[learning]=sig;store.set('map',map);
     document.querySelectorAll('.learn').forEach(b=>{b.classList.remove('learning');b.textContent='MIDI lernen';});
     flash('Taste '+learning+' = '+sigText(sig));learning=null;renderMap();return;
   }
-  for(const k in map)if(map[k]===sig)trigger(k);
+  for(const k in map)if(map[k]===sig){if(type!==0xC0&&!cfg.ccAny){held[k]=true;}trigger(k);}
 }
 function midiDevText(){
   if(!midi)return'MIDI aus';
   const names=[...midi.inputs.values()].map(i=>i.name);
   return names.length?'MIDI: '+names.join(', '):'Kein MIDI-Gerät gefunden (BlueBoard gekoppelt?)';
 }
-function hookMidi(){for(const i of midi.inputs.values())i.onmidimessage=onMidi;$('midiInfo').textContent=midiDevText();}
+function setMidiPill(){const n=midi?[...midi.inputs.values()].map(i=>i.name):[];const p=$('midiPill');p.textContent=n.length?'● '+n.join(', '):'kein MIDI-Gerät';p.classList.toggle('ok',n.length>0);p.title=midiDevText();}
+function hookMidi(){for(const i of midi.inputs.values())i.onmidimessage=onMidi;$('midiInfo').textContent=midiDevText();setMidiPill();}
 if(navigator.requestMIDIAccess){
   navigator.requestMIDIAccess({sysex:false}).then(a=>{midi=a;hookMidi();a.onstatechange=hookMidi;})
-    .catch(e=>{$('midiInfo').textContent='MIDI-Zugriff verweigert: '+e.message;});
+    .catch(e=>{$('midiInfo').textContent='MIDI-Zugriff verweigert: '+e.message;$('midiPill').textContent='MIDI verweigert';});
 }else{
   $('midiInfo').textContent='Dieser Browser kann kein Web MIDI (z. B. Safari/iPad). Bitte Chrome oder Edge am Mac/PC nutzen. Tastatur 1–4 funktioniert trotzdem.';
+  $('midiPill').textContent='kein MIDI im Browser';
 }
 
 // ================= Bedienelemente =================
 $('startBtn').onclick=startAudio;
-$('helpBtn').onclick=()=>$('help').classList.toggle('open');
-document.querySelectorAll('.pedal').forEach(p=>p.addEventListener('click',()=>trigger(p.dataset.k)));
+const openOv=id=>{document.querySelectorAll('.overlay').forEach(o=>o.classList.toggle('open',o.id===id));};
+const closeOv=()=>document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('open'));
+$('helpBtn').onclick=()=>openOv('help');$('setupBtn').onclick=()=>openOv('setup');
+$('helpClose').onclick=closeOv;$('setupClose').onclick=closeOv;
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)closeOv();}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeOv();});
+document.querySelectorAll('.pedal').forEach(p=>{
+  p.addEventListener('pointerdown',e=>{e.preventDefault();held[p.dataset.k]=true;trigger(p.dataset.k);});
+  const up=()=>{if(held[p.dataset.k])releaseVis(p.dataset.k);};
+  p.addEventListener('pointerup',up);p.addEventListener('pointerleave',up);p.addEventListener('pointercancel',up);
+});
 document.querySelectorAll('.learn').forEach(b=>b.addEventListener('click',ev=>{
   ev.stopPropagation();
   document.querySelectorAll('.learn').forEach(x=>{x.classList.remove('learning');x.textContent='MIDI lernen';});
@@ -1105,8 +1214,9 @@ $('ccChk').onchange=e=>{cfg.ccAny=e.target.checked;saveCfg();};
 document.addEventListener('keydown',e=>{
   if(['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName)||e.repeat)return;
   const k={'1':'A','2':'B','3':'C','4':'D'}[e.key];
-  if(k){e.preventDefault();trigger(k);}
+  if(k){e.preventDefault();held[k]=true;trigger(k);}
 });
+document.addEventListener('keyup',e=>{const k={'1':'A','2':'B','3':'C','4':'D'}[e.key];if(k&&held[k])releaseVis(k);});
 
 // ================= Offline-Speicher / Updates =================
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){
