@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BlueBoard Looper v2</title>
+<title>BlueBoard Looper v3</title>
 <style>
 :root{--bg:#111418;--card:#1b2027;--line:#2c333d;--txt:#e8ecf1;--dim:#8b95a3;--rec:#e5484d;--dub:#f5a524;--play:#30a46c;--stop:#5b6573;--acc:#3e8ef7}
 *{box-sizing:border-box}
@@ -44,7 +44,7 @@ button:hover{border-color:var(--acc)}
 </style>
 </head>
 <body>
-<header><h1>BlueBoard Looper</h1><span id="ver">v2</span></header>
+<header><h1>BlueBoard Looper</h1><span id="ver">v3</span></header>
 
 <section class="card">
   <button id="startBtn">▶ Audio starten</button>
@@ -54,7 +54,7 @@ button:hover{border-color:var(--acc)}
     <label>Eingangskanal<select id="chSel"><option value="0">1 (links)</option><option value="1">2 (rechts)</option><option value="-1">Mix 1+2</option></select></label>
     <label id="outWrap">Ausgang<select id="outSel"></select></label>
     <label>Eingangspegel <input type="range" id="inGainR" min="0" max="4" step="0.05"></label>
-    <label>Loop-Lautstärke <input type="range" id="loopVolR" min="0" max="1.5" step="0.05"></label>
+    <label>Loop-Lautstärke <span id="loopVolT"></span><input type="range" id="loopVolR" min="0" max="4" step="0.05"></label>
     <label>Latenzausgleich (ms)<input type="number" id="latN" min="0" max="500" step="1"></label>
     <label class="chk"><input type="checkbox" id="monChk"> Eingang durch die App hören (Monitor)</label>
     <label class="chk"><input type="checkbox" id="ccChk"> CC: jeder Wert löst aus (Toggle-Modus)</label>
@@ -122,7 +122,7 @@ return true;}}
 registerProcessor('cap',Cap);`;
 
 // ---------- Audio ----------
-let ctx=null,sr=48000,stream=null,src=null,inGain,monGain,loopBus,cap,analyser;
+let ctx=null,sr=48000,stream=null,src=null,inGain,monGain,loopBus,cap,analyser,limiter;
 let state='empty';      // empty | rec | play | dub | stopped
 let L=0;                // Looplänge in Samples
 let anchor=0;           // Sample-Zeitpunkt, an dem die Loop-Position 0 ist
@@ -144,7 +144,9 @@ async function startAudio(){
     await makeCapture(silent);
     inGain.connect(analyser);
     inGain.connect(monGain);monGain.connect(ctx.destination);
-    loopBus.connect(ctx.destination);
+    limiter=ctx.createDynamicsCompressor();
+    limiter.threshold.value=-3;limiter.knee.value=0;limiter.ratio.value=20;limiter.attack.value=0.002;limiter.release.value=0.15;
+    loopBus.connect(limiter);limiter.connect(ctx.destination);
     if(cfg.latMs==null){cfg.latMs=Math.round(((ctx.baseLatency||0)+(ctx.outputLatency||0))*1000)+15;saveCfg();}
     applyCfg();
     await openInput(cfg.inDev);
@@ -213,6 +215,7 @@ function applyCfg(){
   $('latN').value=cfg.latMs==null?'':cfg.latMs;
   $('ccChk').checked=cfg.ccAny;$('monChk').checked=cfg.monitor;
   $('inGainR').value=cfg.inGain;$('loopVolR').value=cfg.loopVol;$('chSel').value=String(cfg.chan);
+  $('loopVolT').textContent=cfg.loopVol>0?'('+(20*Math.log10(cfg.loopVol)>=0?'+':'')+(20*Math.log10(cfg.loopVol)).toFixed(0)+' dB)':'(aus)';
   if(!ctx)return;
   inGain.gain.value=cfg.inGain;loopBus.gain.value=cfg.loopVol;
   monGain.gain.value=cfg.monitor?1:0;
