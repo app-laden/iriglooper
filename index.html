@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
-<title>BlueBoard Looper 4.0</title>
+<title>BlueBoard Looper 4.2</title>
 <style>
 :root{--bg:#111418;--card:#1b2027;--line:#2c333d;--txt:#e8ecf1;--dim:#8b95a3;--rec:#e5484d;--dub:#f5a524;--play:#30a46c;--stop:#5b6573;--acc:#3e8ef7}
 *{box-sizing:border-box}
@@ -49,7 +49,14 @@ button:hover{border-color:var(--acc)}button:disabled{opacity:.4;cursor:default}
 .pedal button.learning{background:var(--dub);color:#111}
 .layer{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
 .layer.muted span{color:var(--dim);text-decoration:line-through}
-#drumBtn.on{background:var(--play);border-color:var(--play);color:#fff}
+#bBtn0.on,#bBtn1.on{background:var(--play);border-color:var(--play);color:#fff}
+.beats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+@media(max-width:640px){.beats{grid-template-columns:1fr}}
+.beat{border:2px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.beat.playing{border-color:var(--play)}
+.beat .badge{display:none;background:var(--play);color:#fff;border-radius:6px;padding:2px 8px;font-size:12px}
+.beat.playing .badge{display:inline}
+.filebtn{display:inline-block;cursor:pointer;color:#fff;background:var(--acc);border-radius:8px;padding:8px 12px;font-size:14px}
 .dots{display:flex;gap:8px}
 .dot{width:16px;height:16px;border-radius:50%;background:#0f1216;border:1px solid var(--line)}
 .dot.on{background:var(--acc);border-color:var(--acc)}.dot.one.on{background:var(--dub);border-color:var(--dub)}
@@ -69,10 +76,11 @@ button:hover{border-color:var(--acc)}button:disabled{opacity:.4;cursor:default}
     <li><b>A</b>: 1. Druck Aufnahme, 2. Druck Loop schließen und abspielen, danach Overdub an/aus. Jeder Overdub ist eine eigene Stufe.</li>
     <li><b>B</b>: letzte Stufe entfernen (während Aufnahme/Overdub: diese verwerfen).</li>
     <li><b>C</b>: einmal = Stop/Play (Loop und Drums gemeinsam), zweimal schnell = alles löschen.</li>
-    <li><b>D</b>: Drumcomputer an/aus.</li>
+    <li><b>D</b>: einmal = Beat 1 starten bzw. laufende Drums stoppen; zweimal schnell = zwischen Beat 1 und Beat 2 wechseln (genau am nächsten Taktanfang). Sind die Drums aus, startet D zweimal direkt Beat 2. Weil die App kurz auf einen zweiten Tritt wartet, stoppt D einmal mit knapp einer halben Sekunde Verzögerung.</li>
+    <li><b>Zwei Beats:</b> Jeder Beat hat eigenes Pattern bzw. eigene Loop-Datei, eigenes Tempo und eigene Lautstärke. Ist ein Loop aufgenommen, laufen beide Beats in dessen Tempo; hat ein Beat etwa das halbe oder doppelte Tempo, bleibt dieses Verhältnis erhalten (z. B. Halftime-Teil).</li>
     <li>Ohne Pedal: Tasten 1–4 auf der Tastatur oder Kacheln anklicken.</li>
-    <li><b>Takt-Synchronisation:</b> Laufen die Drums, wird die erste Aufnahme auf ganze Takte gerundet – leicht zu frühes oder zu spätes Treten wird ausgeglichen. Danach ist das Tempo an den Loop gebunden. Startest du die Drums erst zu einem fertigen Loop, passt sich das Tempo der Drums dem Loop an.</li>
-    <li><b>Eigene Drum-Loops:</b> lizenzfreie WAV- oder MP3-Loops (z. B. von looperman.com) mit „Loop-Datei laden“ übernehmen. Steht das Tempo im Dateinamen (z. B. „Funk 95 BPM“), erkennt die App die Taktzahl selbst; sonst unter „Takte“ korrigieren. Die Dateien bleiben nur in diesem Browser auf diesem Gerät.</li>
+    <li><b>Takt-Synchronisation:</b> Laufen die Drums, beginnt und endet die erste Aufnahme immer an einem Taktanfang. Tritt A irgendwann im Takt vor dem Einsatz („BEREIT“, Countdown in Schlägen) – die Aufnahme startet am nächsten Taktanfang. Ein Tritt bis ein Viertel nach dem Taktanfang (also etwas zu spät) zählt noch zu diesem Takt. Zum Beenden A im letzten Takt treten: Die Aufnahme läuft bis zum Taktende und der Loop schließt sich nahtlos. Danach ist das Tempo an den Loop gebunden. Startest du die Drums erst zu einem fertigen Loop, passt sich das Tempo der Drums dem Loop an.</li>
+    <li><b>Eigene Drum-Loops:</b> lizenzfreie WAV- oder MP3-Loops (z. B. von looperman.com) beim gewünschten Beat mit „Loop-Datei laden“ übernehmen. Steht das Tempo im Dateinamen (z. B. „Funk 95 BPM“), erkennt die App die Taktzahl selbst; sonst unter „Takte“ korrigieren. Die Dateien bleiben nur in diesem Browser auf diesem Gerät.</li>
     <li>BlueBoard: beim Einschalten <b>C</b> gedrückt halten („MIDI over Bluetooth mode 2“), am Mac über Audio-MIDI-Setup → MIDI-Studio → Bluetooth verbinden. Die Tasten senden CC 20–23 und sind voreingestellt.</li>
     <li>Klingen Overdubs zu spät, den Latenzausgleich erhöhen; zu früh, verringern.</li>
   </ul>
@@ -119,22 +127,15 @@ button:hover{border-color:var(--acc)}button:disabled{opacity:.4;cursor:default}
   <div class="pedal" data-k="A"><div class="key">A</div><div class="fn">Aufnahme → Play → Overdub</div><div class="map" id="mapA"></div><button class="learn" data-k="A">MIDI lernen</button></div>
   <div class="pedal" data-k="B"><div class="key">B</div><div class="fn">Letzte Stufe rückgängig</div><div class="map" id="mapB"></div><button class="learn" data-k="B">MIDI lernen</button></div>
   <div class="pedal" data-k="C"><div class="key">C</div><div class="fn">Stop / Play<br>2× = alles löschen</div><div class="map" id="mapC"></div><button class="learn" data-k="C">MIDI lernen</button></div>
-  <div class="pedal" data-k="D"><div class="key">D</div><div class="fn">Drums an / aus</div><div class="map" id="mapD"></div><button class="learn" data-k="D">MIDI lernen</button></div>
+  <div class="pedal" data-k="D"><div class="key">D</div><div class="fn">Beat 1 / Stop<br>2× = Beat wechseln</div><div class="map" id="mapD"></div><button class="learn" data-k="D">MIDI lernen</button></div>
 </section>
 
 <section class="card">
-  <div class="row" style="margin-top:0"><h2 style="margin:0">Drumcomputer</h2><div class="dots" id="dots"><div class="dot one"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div><button id="drumBtn">Drums starten</button></div>
-  <div class="grid">
-    <label>Beat<select id="patSel"></select></label>
-    <label id="bpmWrap">Tempo (BPM) <span id="bpmT"></span><input type="range" id="bpmR" min="40" max="240" step="1"></label>
-    <label id="barsWrap" class="hide">Takte in der Loop-Datei<select id="barsSel"><option>1</option><option>2</option><option>4</option><option>8</option><option>16</option></select></label>
-    <label>Drum-Lautstärke <input type="range" id="drumVolR" min="0" max="2" step="0.05"></label>
-  </div>
-  <div class="row">
-    <span><button id="tapBtn">Tap</button> <button id="bpmMinus">−1</button> <button id="bpmPlus">+1</button></span>
-    <span><label class="primary" style="display:inline-block;cursor:pointer;color:#fff;border-radius:8px;padding:8px 12px">Loop-Datei laden<input type="file" id="fileIn" accept="audio/*,.wav,.mp3,.m4a,.aif,.aiff" class="hide"></label>
-    <button id="delLoopBtn" class="hide">Loop-Datei entfernen</button></span>
-  </div>
+  <div class="row" style="margin-top:0"><h2 style="margin:0">Drumcomputer</h2><div class="dots" id="dots"><div class="dot one"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+    <span><button id="bBtn0">Beat 1</button> <button id="bBtn1">Beat 2</button> <button id="dStop" class="hide">Stop</button></span></div>
+  <div class="small" style="margin-top:6px">Pedal D: einmal = Beat 1 starten bzw. Drums stoppen · zweimal = zwischen Beat 1 und 2 wechseln (am Taktanfang)</div>
+  <div class="beats" id="beats"></div>
+  <div class="grid"><label>Drums gesamt (Lautstärke) <input type="range" id="drumVolR" min="0" max="2" step="0.05"></label></div>
   <div id="drumInfo" class="small" style="margin-top:8px"></div>
 </section>
 
@@ -146,7 +147,7 @@ button:hover{border-color:var(--acc)}button:disabled{opacity:.4;cursor:default}
 
 <script>
 "use strict";
-const VERSION='4.0';
+const VERSION='4.2';
 const KONTAKT_URL='https://github.com/app-laden';
 const $=id=>document.getElementById(id);
 $('ver').textContent=VERSION;$('ver2').textContent=VERSION;
@@ -158,6 +159,7 @@ const store={
 };
 let cfg=Object.assign({latMs:null,ccAny:false,monitor:false,inGain:1,loopVol:0.9,chan:0,inDev:'',outDev:'',
   drumVol:0.8,bpm:100,pattern:'p:0'},store.get('cfg',{}));
+if(!Array.isArray(cfg.beats))cfg.beats=[{pattern:cfg.pattern||'p:0',bpm:cfg.bpm||100,vol:1},{pattern:'p:3',bpm:cfg.bpm||100,vol:1}];
 let map={A:'c0:20',B:'c0:21',C:'c0:22',D:'c0:23'};
 {const m=store.get('map',{});for(const k in map)if(m[k])map[k]=m[k];}
 const saveCfg=()=>store.set('cfg',cfg);
@@ -211,7 +213,7 @@ async function startAudio(){
     if(cfg.outDev&&ctx.setSinkId){try{await ctx.setSinkId(cfg.outDev)}catch(e){}}
     $('startBtn').textContent='Audio läuft';
     $('audioInfo').textContent=`${sr} Hz · Ausgangslatenz ca. ${Math.round(((ctx.baseLatency||0)+(ctx.outputLatency||0))*1000)} ms · Aufnahme: ${capMode}`;
-    await prepareSelectedLoop();
+    await prepareLoops();
     updateDrumUI();
   }catch(e){
     flash('Audio konnte nicht gestartet werden: '+e.message);console.error(e);ctx=null;
@@ -331,11 +333,24 @@ function startPlay(){
 }
 
 // ================= Looper-Ablauf =================
-function startRec(){recStart=nowF();setState('rec');}
+// Mit laufenden Drums: Ein Tritt im ersten Viertel eines Takts (also leicht zu spät) zählt
+// noch zu diesem Takt, sonst gilt der nächste Taktanfang. So entsteht kein leerer Takt.
+const GRACE=0.25;
+let recQ=null;  // {bar,origin} wenn die Aufnahme am Takt ausgerichtet wird
+function snapBar(f,q){const pos=(f-q.origin)/q.bar,i=Math.floor(pos);return Math.round(q.origin+((pos-i)<GRACE?i:i+1)*q.bar);}
+function startRec(){
+  if(active){recQ={bar:curBar(active.slot),origin:active.origin};recStart=snapBar(nowF(),recQ);}
+  else{recQ=null;recStart=nowF();}
+  setState('rec');
+}
 function endRec(){
   const e=nowF();let s=recStart,end=e;
-  if(drum.on){
-    const bar=curBar(),o=drum.origin;
+  if(recQ){
+    end=snapBar(e,recQ);
+    if(end-s<recQ.bar*0.5)end=Math.round(s+recQ.bar);
+    lockBar=recQ.bar;
+  }else if(active){
+    const bar=curBar(active.slot),o=active.origin;
     s=Math.round(o+Math.round((recStart-o)/bar)*bar);
     end=Math.round(o+Math.round((e-o)/bar)*bar);
     if(end-s<bar*0.5)end=Math.round(s+bar);
@@ -384,23 +399,34 @@ function clearAll(){
 }
 
 // ================= Pedale =================
-let lastC=0,cRestoreDrums=false,drumsPaused=false;
+let lastC=0,cRestore=null,drumsPaused=false,pausedSlot=0;
+function pauseDrums(){if(active){pausedSlot=active.slot;stopDrums();drumsPaused=true;}}
+function resumeDrums(){if(drumsPaused){drumsPaused=false;startDrums(pausedSlot);}}
 function pressC(){
   const t=performance.now();
   if(t-lastC<450){
-    lastC=0;const restore=cRestoreDrums;
+    lastC=0;const restore=cRestore;
     clearAll();
-    if(restore&&!drum.on)startDrums();
+    if(restore!=null&&!active)startDrums(restore);
     return;
   }
-  lastC=t;cRestoreDrums=drum.on||drumsPaused;
+  lastC=t;cRestore=active?active.slot:(drumsPaused?pausedSlot:null);
   switch(state){
     case 'rec':endRec();break;
-    case 'play':stopAll();if(drum.on){stopDrums();drumsPaused=true;}setState('stopped');break;
-    case 'dub':endDub('stopped');stopAll();if(drum.on){stopDrums();drumsPaused=true;}break;
-    case 'stopped':startPlay();if(drumsPaused){drumsPaused=false;startDrums();}break;
-    case 'empty':if(drum.on){stopDrums();flash('Drums gestoppt');}break;
+    case 'play':stopAll();pauseDrums();setState('stopped');break;
+    case 'dub':endDub('stopped');stopAll();pauseDrums();break;
+    case 'stopped':startPlay();resumeDrums();break;
+    case 'empty':if(active){stopDrums();flash('Drums gestoppt');}break;
   }
+}
+let dTimer=null;
+function pressD(){
+  if(dTimer){
+    clearTimeout(dTimer);dTimer=null;drumsPaused=false;
+    if(active)switchTo(1-active.slot);else startDrums(1);
+    return;
+  }
+  dTimer=setTimeout(()=>{dTimer=null;drumsPaused=false;if(active)stopDrums();else startDrums(0);},450);
 }
 const actions={
   A(){switch(state){
@@ -408,10 +434,10 @@ const actions={
     case 'rec':endRec();break;
     case 'play':startDub();break;
     case 'dub':endDub('play');break;
-    case 'stopped':startPlay();if(drumsPaused){drumsPaused=false;startDrums();}break;}},
+    case 'stopped':startPlay();resumeDrums();break;}},
   B(){undo();},
   C(){pressC();},
-  D(){drumsPaused=false;if(drum.on)stopDrums();else startDrums();}
+  D(){pressD();}
 };
 async function trigger(k){
   const el=document.querySelector(`.pedal[data-k="${k}"]`);
@@ -421,9 +447,9 @@ async function trigger(k){
   actions[k]();
 }
 
-// ================= Drumcomputer =================
+// ================= Drumcomputer (zwei Beats) =================
 // x = normal, X = Betonung, g = leise (Ghost Note)
-// k Bassdrum, s Snare, h Hi-Hat zu, o Hi-Hat offen, r Rimshot, c Clap
+// k Bassdrum, sn Snare, h Hi-Hat zu, o Hi-Hat offen, r Rimshot, c Clap
 const PATTERNS=[
  {n:'Rock',s:16,k:'X.....x.X.x.....',sn:'....X.......X...',h:'X.x.x.x.X.x.x.x.'},
  {n:'Rock (16tel Hi-Hat)',s:16,k:'X......xX.x.....',sn:'....X.......X...',h:'XxxxXxxxXxxxXxxx'},
@@ -440,107 +466,156 @@ const PATTERNS=[
  {n:'Metronom',s:4,r:'Xxxx'}
 ];
 const VEL={X:1,x:0.75,g:0.3};
-let drum={on:false,origin:0,k:0,timer:null,src:null,kind:'synth'};
+let insts=[];      // laufende Beat-Instanzen (beim Wechsel kurz zwei gleichzeitig)
+let active=null;   // die aktuell führende Instanz
 let userLoops=[],decoded={};
+const beat=i=>cfg.beats[i];
 
-function selPattern(){
-  const v=cfg.pattern||'p:0';
+function selPattern(slot){
+  const v=beat(slot).pattern||'p:0';
   if(v.startsWith('u:')){const id=Number(v.slice(2));const u=userLoops.find(x=>x.id===id);if(u)return{kind:'file',u};}
   const i=Number(v.slice(2))||0;return{kind:'synth',p:PATTERNS[Math.min(i,PATTERNS.length-1)]};
 }
 function fileBar(u){const b=decoded[u.id];return b?b.length/u.bars:null;}
-function curBar(){
-  if(lockBar)return lockBar;
-  const s=selPattern();
+function natBar(slot){
+  const s=selPattern(slot);
   if(s.kind==='file'){const fb=fileBar(s.u);if(fb)return fb;}
-  return 240*sr/cfg.bpm;
+  return 240*sr/beat(slot).bpm;
 }
-function curBpm(){return ctx?240*sr/curBar():(()=>{const s=selPattern();
-  if(s.kind==='file'&&decoded[s.u.id])return 240*s.u.bars/decoded[s.u.id].duration;return cfg.bpm;})();}
+// Taktlänge, mit der der Beat tatsächlich läuft. Ist ein Loop vorhanden, wird der Beat
+// an dessen Takt gebunden (halbes/doppeltes Tempo bleibt erhalten).
+function curBar(slot){
+  const nb=natBar(slot);
+  if(!lockBar)return nb;
+  const k=Math.max(-2,Math.min(2,Math.round(Math.log2(nb/lockBar))));
+  return lockBar*Math.pow(2,k);
+}
+function shownBpm(slot){
+  if(ctx)return 240*sr/curBar(slot);
+  return beat(slot).bpm;
+}
 
-function startDrums(){
+function canStart(slot){
+  const s=selPattern(slot);
+  if(s.kind==='file'&&!decoded[s.u.id]){flash('Loop-Datei von Beat '+(slot+1)+' wird noch geladen …');decodeLoop(s.u).then(updateDrumUI);return false;}
+  return true;
+}
+function startBeat(slot,origin,startAt){
+  const s=selPattern(slot);
+  const out=ctx.createGain();out.gain.value=beat(slot).vol;out.connect(drumBus);
+  const inst={slot,kind:s.kind,origin,startAt,stopAt:Infinity,k:0,timer:null,src:null,out};
+  if(s.kind==='file')instFile(inst,s.u);else instSynth(inst);
+  insts.push(inst);return inst;
+}
+function instFile(inst,u){
+  const buf=decoded[u.id],bar=curBar(inst.slot),rate=(buf.length/u.bars)/bar;
+  const s=ctx.createBufferSource();s.buffer=buf;s.loop=true;s.playbackRate.value=rate;s.connect(inst.out);
+  const t0=Math.max(ctx.currentTime+0.03,inst.startAt/sr);
+  const total=bar*u.bars;
+  const ph=(((t0*sr-inst.origin)%total)+total)%total;
+  s.start(t0,(ph*rate)/sr);inst.src=s;
+}
+function instSynth(inst){
+  const p=selPattern(inst.slot).p,step=curBar(inst.slot)/p.s;
+  const from=Math.max(inst.startAt,nowF()+0.03*sr);
+  inst.k=Math.max(0,Math.ceil((from-inst.origin)/step));
+  inst.timer=setInterval(()=>sched(inst),25);sched(inst);
+}
+function sched(inst){
+  const s=selPattern(inst.slot);if(s.kind!=='synth')return;
+  const p=s.p,step=curBar(inst.slot)/p.s,horizon=(ctx.currentTime+0.12)*sr,now=nowF();
+  for(let guard=0;guard<64;guard++){
+    let f=inst.origin+inst.k*step;
+    if(p.sw&&inst.k%2===1)f+=p.sw*step;
+    if(f>=horizon||f>=inst.stopAt)break;
+    if(f>=now-0.005*sr)playStep(p,inst.k%p.s,f/sr,inst.out);
+    inst.k++;
+  }
+}
+function endInst(inst,at,fadeNow){
+  inst.stopAt=at;
+  if(fadeNow)inst.out.gain.setTargetAtTime(0,ctx.currentTime,0.01);
+  if(inst.src){try{inst.src.stop(Math.max(ctx.currentTime,at/sr))}catch(e){}}
+  const wait=Math.max(0,(at/sr-ctx.currentTime)*1000)+300;
+  setTimeout(()=>{
+    if(inst.timer){clearInterval(inst.timer);inst.timer=null;}
+    insts=insts.filter(x=>x!==inst);
+    try{inst.out.disconnect()}catch(e){}
+  },wait);
+}
+function startDrums(slot){
   if(!ctx){flash('Bitte zuerst „Audio starten“ klicken');return;}
-  const s=selPattern();
-  if(s.kind==='file'&&!decoded[s.u.id]){flash('Loop-Datei wird noch geladen …');prepareSelectedLoop();return;}
+  if(active)stopDrums();
+  if(!canStart(slot))return;
   if(L>0&&!lockBar){
-    let bar=s.kind==='file'?fileBar(s.u):240*sr/cfg.bpm;
-    const n=Math.max(1,Math.round(L/bar));
+    const n=Math.max(1,Math.round(L/natBar(slot)));
     lockBar=L/n;
     flash('Tempo an Loop angepasst: '+Math.round(240*sr/lockBar)+' BPM');
   }
-  drum.origin=L>0?anchor:nowF()+Math.round(0.08*sr);
-  drum.on=true;drum.kind=s.kind;
-  if(s.kind==='file')startFileDrums(s.u);else startSynthDrums();
+  const origin=L>0?anchor:nowF()+Math.round(0.08*sr);
+  active=startBeat(slot,origin,origin);
   updateDrumUI();
 }
 function stopDrums(){
-  drum.on=false;
-  if(drum.timer){clearInterval(drum.timer);drum.timer=null;}
-  if(drum.src){try{drum.src.stop()}catch(e){}drum.src.disconnect();drum.src=null;}
+  const n=nowF();insts.forEach(i=>endInst(i,n,true));active=null;updateDrumUI();
+}
+// Wechsel zum anderen Beat am nächsten Taktanfang des laufenden Beats
+function switchTo(to){
+  if(!active){startDrums(to);return;}
+  if(active.slot===to)return;
+  if(!canStart(to))return;
+  const cur=active,b=curBar(cur.slot),soon=nowF()+Math.round(0.12*sr);
+  const at=Math.round(cur.origin+Math.ceil((soon-cur.origin)/b)*b);
+  const origin=(L>0&&lockBar)?anchor:at;
+  endInst(cur,at,false);
+  active=startBeat(to,origin,at);
+  flash('Wechsel zu Beat '+(to+1)+' am nächsten Taktanfang');
   updateDrumUI();
 }
-function restartDrums(){if(drum.on){const o=drum.origin;stopDrums();drum.on=true;drum.origin=o;
-  const s=selPattern();drum.kind=s.kind;if(s.kind==='file'){if(decoded[s.u.id])startFileDrums(s.u);else{stopDrums();prepareSelectedLoop();}}else startSynthDrums();updateDrumUI();}}
+// Beat neu aufsetzen, z. B. nach Wechsel des Patterns oder der Taktzahl (Phase bleibt erhalten)
+function restartActive(){
+  if(!active)return;
+  const slot=active.slot,origin=active.origin;
+  if(!canStart(slot)){stopDrums();return;}
+  const n=nowF();insts.forEach(i=>endInst(i,n,true));
+  active=startBeat(slot,origin,n+Math.round(0.03*sr));
+  updateDrumUI();
+}
 
-function startFileDrums(u){
-  const buf=decoded[u.id],bar=curBar(),nat=buf.length/u.bars,rate=nat/bar;
-  const s=ctx.createBufferSource();s.buffer=buf;s.loop=true;s.playbackRate.value=rate;s.connect(drumBus);
-  const t0=Math.max(ctx.currentTime+0.03,drum.origin/sr);
-  const total=bar*u.bars;
-  const ph=(((t0*sr-drum.origin)%total)+total)%total;
-  s.start(t0,(ph*rate)/sr);drum.src=s;
-}
-function startSynthDrums(){
-  const p=selPattern().p,step=curBar()/p.s;
-  drum.k=Math.max(0,Math.ceil((nowF()+0.03*sr-drum.origin)/step));
-  drum.timer=setInterval(schedSynth,25);schedSynth();
-}
-function schedSynth(){
-  if(!drum.on||drum.kind!=='synth')return;
-  const p=selPattern().p;if(!p)return;
-  const step=curBar()/p.s,horizon=(ctx.currentTime+0.12)*sr,now=nowF();
-  for(let guard=0;guard<64;guard++){
-    let f=drum.origin+drum.k*step;
-    if(p.sw&&drum.k%2===1)f+=p.sw*step;
-    if(f>=horizon)break;
-    if(f>=now-0.005*sr)playStep(p,drum.k%p.s,f/sr);
-    drum.k++;
-  }
-}
-function playStep(p,i,t){
+function playStep(p,i,t,out){
   const v=c=>VEL[c]||0;
-  if(p.k&&v(p.k[i]))kick(t,v(p.k[i]));
-  if(p.sn&&v(p.sn[i]))snare(t,v(p.sn[i]));
-  if(p.h&&v(p.h[i]))hat(t,v(p.h[i]),0.05);
-  if(p.o&&v(p.o[i]))hat(t,v(p.o[i]),0.35);
-  if(p.r&&v(p.r[i]))rim(t,v(p.r[i]));
-  if(p.c&&v(p.c[i]))clap(t,v(p.c[i]));
+  if(p.k&&v(p.k[i]))kick(t,v(p.k[i]),out);
+  if(p.sn&&v(p.sn[i]))snare(t,v(p.sn[i]),out);
+  if(p.h&&v(p.h[i]))hat(t,v(p.h[i]),0.05,out);
+  if(p.o&&v(p.o[i]))hat(t,v(p.o[i]),0.35,out);
+  if(p.r&&v(p.r[i]))rim(t,v(p.r[i]),out);
+  if(p.c&&v(p.c[i]))clap(t,v(p.c[i]),out);
 }
-function env(t,peak,dur){const g=ctx.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(peak,0.0002),t+0.002);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);g.connect(drumBus);return g;}
+function env(t,peak,dur,out){const g=ctx.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(peak,0.0002),t+0.002);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);g.connect(out);return g;}
 function noise(t,dur,dest){const n=ctx.createBufferSource();n.buffer=noiseBuf;n.connect(dest);n.start(t,Math.random()*0.5);n.stop(t+dur+0.02);}
-function kick(t,v){
-  const o=ctx.createOscillator(),g=env(t,v*1.0,0.42);
+function kick(t,v,out){
+  const o=ctx.createOscillator(),g=env(t,v*1.0,0.42,out);
   o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(45,t+0.12);
   o.connect(g);o.start(t);o.stop(t+0.45);
-  const cg=env(t,v*0.25,0.012),hp=ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=2500;hp.connect(cg);noise(t,0.012,hp);
+  const cg=env(t,v*0.25,0.012,out),hp=ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=2500;hp.connect(cg);noise(t,0.012,hp);
 }
-function snare(t,v){
-  const g=env(t,v*0.55,0.2),hp=ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=1200;hp.connect(g);noise(t,0.2,hp);
-  const o=ctx.createOscillator(),og=env(t,v*0.35,0.11);o.type='triangle';o.frequency.setValueAtTime(200,t);o.frequency.exponentialRampToValueAtTime(160,t+0.1);o.connect(og);o.start(t);o.stop(t+0.13);
+function snare(t,v,out){
+  const g=env(t,v*0.55,0.2,out),hp=ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=1200;hp.connect(g);noise(t,0.2,hp);
+  const o=ctx.createOscillator(),og=env(t,v*0.35,0.11,out);o.type='triangle';o.frequency.setValueAtTime(200,t);o.frequency.exponentialRampToValueAtTime(160,t+0.1);o.connect(og);o.start(t);o.stop(t+0.13);
 }
-function hat(t,v,dur){
-  const g=env(t,v*0.22,dur),hp=ctx.createBiquadFilter(),bp=ctx.createBiquadFilter();
+function hat(t,v,dur,out){
+  const g=env(t,v*0.22,dur,out),hp=ctx.createBiquadFilter(),bp=ctx.createBiquadFilter();
   hp.type='highpass';hp.frequency.value=7000;bp.type='bandpass';bp.frequency.value=10000;bp.Q.value=0.8;
   hp.connect(bp);bp.connect(g);noise(t,dur,hp);
 }
-function rim(t,v){
-  const o=ctx.createOscillator(),bp=ctx.createBiquadFilter(),g=env(t,v*0.45,0.035);
+function rim(t,v,out){
+  const o=ctx.createOscillator(),bp=ctx.createBiquadFilter(),g=env(t,v*0.45,0.035,out);
   o.type='square';o.frequency.value=1700;bp.type='bandpass';bp.frequency.value=1700;bp.Q.value=6;
   o.connect(bp);bp.connect(g);o.start(t);o.stop(t+0.05);
 }
-function clap(t,v){
+function clap(t,v,out){
   const bp=ctx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1400;bp.Q.value=1;
-  [0,0.011,0.022].forEach(d=>{const g=env(t+d,v*0.4,d===0.022?0.16:0.012);bp.connect(g);});
+  [0,0.011,0.022].forEach(d=>{const g=env(t+d,v*0.4,d===0.022?0.16:0.012,out);bp.connect(g);});
   noise(t,0.2,bp);
 }
 
@@ -558,7 +633,7 @@ const DB={
 };
 function guessBars(name,dur){
   const m=/(\d{2,3})\s*-?\s*bpm/i.exec(name)||/(?:^|[^\d])(\d{2,3})(?:[^\d]|$)/.exec(name);
-  if(m){const bpm=Number(m[1]);if(bpm>=50&&bpm<=220){const b=Math.max(1,Math.round(dur*bpm/240));return b;}}
+  if(m){const bpm=Number(m[1]);if(bpm>=50&&bpm<=220){return Math.max(1,Math.round(dur*bpm/240));}}
   let best=1,bd=1e9;
   for(const b of [1,2,4,8,16]){const bpm=240*b/dur;if(bpm<55||bpm>190)continue;const d=Math.abs(bpm-100);if(d<bd){bd=d;best=b;}}
   return best;
@@ -576,78 +651,125 @@ async function decodeLoop(u){
     return buf;
   }catch(e){flash('Datei konnte nicht gelesen werden: '+u.name);return null;}
 }
-async function prepareSelectedLoop(){const s=selPattern();if(s.kind==='file'){await decodeLoop(s.u);updateDrumUI();}}
+async function prepareLoops(){for(const i of [0,1]){const s=selPattern(i);if(s.kind==='file')await decodeLoop(s.u);}updateDrumUI();}
 function fillPatterns(){
-  const sel=$('patSel');sel.innerHTML='';
-  const g1=document.createElement('optgroup');g1.label='Eingebaute Beats';
-  PATTERNS.forEach((p,i)=>{const o=document.createElement('option');o.value='p:'+i;o.textContent=p.n;g1.appendChild(o);});
-  sel.appendChild(g1);
-  if(userLoops.length){
-    const g2=document.createElement('optgroup');g2.label='Eigene Loops';
-    userLoops.forEach(u=>{const o=document.createElement('option');o.value='u:'+u.id;o.textContent=u.name;g2.appendChild(o);});
-    sel.appendChild(g2);
+  for(const i of [0,1]){
+    const sel=$('patSel'+i);sel.innerHTML='';
+    const g1=document.createElement('optgroup');g1.label='Eingebaute Beats';
+    PATTERNS.forEach((p,j)=>{const o=document.createElement('option');o.value='p:'+j;o.textContent=p.n;g1.appendChild(o);});
+    sel.appendChild(g1);
+    if(userLoops.length){
+      const g2=document.createElement('optgroup');g2.label='Eigene Loops';
+      userLoops.forEach(u=>{const o=document.createElement('option');o.value='u:'+u.id;o.textContent=u.name;g2.appendChild(o);});
+      sel.appendChild(g2);
+    }
+    if(![...sel.options].some(o=>o.value===beat(i).pattern))beat(i).pattern='p:0';
+    sel.value=beat(i).pattern;
   }
-  if(![...sel.options].some(o=>o.value===cfg.pattern))cfg.pattern='p:0';
-  sel.value=cfg.pattern;updateDrumUI();
+  updateDrumUI();
 }
-async function addLoopFile(file){
+async function addLoopFile(slot,file){
   if(!file)return;
   const data=await file.arrayBuffer();
   const name=file.name.replace(/\.[^.]+$/,'');
   const u={name,data,bars:null};
   try{u.id=await DB.put(u);}catch(e){flash('Speichern nicht möglich – Loop nur bis zum Neuladen verfügbar');u.id=Date.now();}
   userLoops.push(u);
-  cfg.pattern='u:'+u.id;saveCfg();
+  beat(slot).pattern='u:'+u.id;saveCfg();
   fillPatterns();
-  if(ctx){await decodeLoop(u);if(drum.on)restartDrums();}
+  if(ctx){await decodeLoop(u);if(active&&active.slot===slot)restartActive();}
   updateDrumUI();
-  flash('Loop „'+name+'“ übernommen'+(ctx?'':' – wird nach „Audio starten“ geladen'));
-}
-async function deleteSelectedLoop(){
-  const s=selPattern();if(s.kind!=='file')return;
-  if(!confirmDel()){return;}
-  if(drum.on)stopDrums();
-  try{await DB.del(s.u.id);}catch(e){}
-  userLoops=userLoops.filter(x=>x.id!==s.u.id);delete decoded[s.u.id];
-  cfg.pattern='p:0';saveCfg();fillPatterns();flash('Loop-Datei entfernt');
+  flash('Loop „'+name+'“ in Beat '+(slot+1)+' übernommen'+(ctx?'':' – wird nach „Audio starten“ geladen'));
 }
 let delArm=0;
-function confirmDel(){const t=performance.now();if(t-delArm<3000){delArm=0;return true;}delArm=t;flash('Nochmal klicken zum Entfernen');return false;}
+async function deleteLoop(slot){
+  const s=selPattern(slot);if(s.kind!=='file')return;
+  const t=performance.now();if(t-delArm>3000){delArm=t;flash('Nochmal klicken zum Entfernen');return;}delArm=0;
+  if(active&&selPattern(active.slot).kind==='file'&&selPattern(active.slot).u.id===s.u.id)stopDrums();
+  try{await DB.del(s.u.id);}catch(e){}
+  userLoops=userLoops.filter(x=>x.id!==s.u.id);delete decoded[s.u.id];
+  for(const i of [0,1])if(beat(i).pattern==='u:'+s.u.id)beat(i).pattern='p:0';
+  saveCfg();fillPatterns();flash('Loop-Datei entfernt');
+}
 
 function updateDrumUI(){
-  const s=selPattern(),isFile=s.kind==='file';
-  $('drumBtn').textContent=drum.on?'Drums stoppen':'Drums starten';
-  $('drumBtn').classList.toggle('on',drum.on);
-  $('barsWrap').classList.toggle('hide',!isFile);
-  $('delLoopBtn').classList.toggle('hide',!isFile);
-  if(isFile)$('barsSel').value=String(s.u.bars||4);
-  const locked=!!lockBar;
-  const bpm=Math.round(curBpm()*10)/10;
-  $('bpmT').textContent='('+bpm+')';
-  $('bpmR').value=Math.round(isFile||locked?bpm:cfg.bpm);
-  const dis=locked||isFile;
-  $('bpmR').disabled=dis;$('tapBtn').disabled=dis;$('bpmMinus').disabled=dis;$('bpmPlus').disabled=dis;
+  for(const i of [0,1]){
+    const s=selPattern(i),isFile=s.kind==='file',playing=!!active&&active.slot===i;
+    $('beatBox'+i).classList.toggle('playing',playing);
+    $('bBtn'+i).classList.toggle('on',playing);
+    $('barsWrap'+i).classList.toggle('hide',!isFile);
+    $('del'+i).classList.toggle('hide',!isFile);
+    if(isFile)$('bars'+i).value=String(s.u.bars||4);
+    const bpm=Math.round(shownBpm(i)*10)/10;
+    $('bpmT'+i).textContent=bpm+' BPM';
+    const dis=!!lockBar||isFile;
+    $('bpmR'+i).value=Math.round(dis?bpm:beat(i).bpm);
+    ['bpmR','tap','minus','plus'].forEach(x=>$(x+i).disabled=dis);
+    $('vol'+i).value=beat(i).vol;
+  }
+  $('dStop').classList.toggle('hide',!active);
   let info='';
-  if(locked)info='Tempo an den Loop gebunden ('+bpm+' BPM). Zum Ändern alles löschen.';
-  else if(isFile)info=decoded[s.u.id]?'Tempo aus der Loop-Datei: '+bpm+' BPM bei '+s.u.bars+' Takt(en). Stimmt das nicht, „Takte“ ändern.':'Loop-Datei wird nach „Audio starten“ geladen.';
-  else info='Laufen die Drums, wird die erste Aufnahme auf ganze Takte gerundet.';
+  if(lockBar)info='Tempo an den Loop gebunden ('+Math.round(240*sr/lockBar*10)/10+' BPM). Beat mit deutlich anderem Tempo läuft im halben oder doppelten Tempo. Zum Ändern alles löschen.';
+  else info='Laufen die Drums, wird die erste Aufnahme auf ganze Takte des laufenden Beats gerundet.';
   $('drumInfo').textContent=info;
 }
-function setBpm(v){
+function setBpm(slot,v){
   v=Math.max(40,Math.min(240,Math.round(v)));
-  if(drum.on&&ctx&&!lockBar&&selPattern().kind==='synth'){
-    const oldBar=curBar(),now=nowF();
-    const frac=((((now-drum.origin)/oldBar)%1)+1)%1;
-    cfg.bpm=v;const nb=curBar();
-    drum.origin=now-frac*nb;
-    const p=selPattern().p;drum.k=Math.ceil(((ctx.currentTime+0.12)*sr-drum.origin)/(nb/p.s));
-  }else cfg.bpm=v;
+  if(lockBar||selPattern(slot).kind==='file')return;
+  if(active&&active.slot===slot&&ctx){
+    const oldBar=curBar(slot),now=nowF();
+    const frac=((((now-active.origin)/oldBar)%1)+1)%1;
+    beat(slot).bpm=v;const nb=curBar(slot);
+    active.origin=now-frac*nb;
+    const p=selPattern(slot).p;active.k=Math.ceil(((ctx.currentTime+0.12)*sr-active.origin)/(nb/p.s));
+  }else beat(slot).bpm=v;
   saveCfg();updateDrumUI();
 }
-let taps=[];
-function tap(){
-  const t=performance.now();taps=taps.filter(x=>t-x<3000);taps.push(t);
-  if(taps.length>=2){const d=(taps[taps.length-1]-taps[0])/(taps.length-1);setBpm(60000/d);}
+const taps=[[],[]];
+function tap(slot){
+  const t=performance.now();taps[slot]=taps[slot].filter(x=>t-x<3000);taps[slot].push(t);
+  const a=taps[slot];if(a.length>=2){const d=(a[a.length-1]-a[0])/(a.length-1);setBpm(slot,60000/d);}
+}
+function buildBeatUI(){
+  const box=$('beats');box.innerHTML='';
+  for(const i of [0,1]){
+    const d=document.createElement('div');d.className='beat';d.id='beatBox'+i;
+    d.innerHTML=`<div class="row" style="margin-top:0"><h3 style="margin:0">Beat ${i+1}</h3><span class="badge">spielt</span></div>
+      <label>Beat<select id="patSel${i}"></select></label>
+      <label>Tempo <span id="bpmT${i}"></span><input type="range" id="bpmR${i}" min="40" max="240" step="1"></label>
+      <div class="row"><span><button id="tap${i}">Tap</button> <button id="minus${i}">−1</button> <button id="plus${i}">+1</button></span></div>
+      <label id="barsWrap${i}" class="hide">Takte in der Loop-Datei<select id="bars${i}"><option>1</option><option>2</option><option>4</option><option>8</option><option>16</option></select></label>
+      <label>Lautstärke <input type="range" id="vol${i}" min="0" max="2" step="0.05"></label>
+      <div class="row"><label class="filebtn">Loop-Datei laden<input type="file" id="file${i}" accept="audio/*,.wav,.mp3,.m4a,.aif,.aiff" class="hide"></label><button id="del${i}" class="hide">Datei entfernen</button></div>`;
+    box.appendChild(d);
+  }
+  for(const i of [0,1]){
+    $('patSel'+i).onchange=async e=>{
+      const before=selPattern(i).kind;
+      beat(i).pattern=e.target.value;saveCfg();
+      const s=selPattern(i);if(s.kind==='file')await decodeLoop(s.u);
+      if(active&&active.slot===i){
+        if(before==='synth'&&s.kind==='synth'){active.kind='synth';active.k=Math.ceil(((ctx.currentTime+0.12)*sr-active.origin)/(curBar(i)/s.p.s));}
+        else restartActive();
+      }
+      updateDrumUI();
+    };
+    $('bpmR'+i).oninput=e=>setBpm(i,Number(e.target.value));
+    $('minus'+i).onclick=()=>setBpm(i,beat(i).bpm-1);
+    $('plus'+i).onclick=()=>setBpm(i,beat(i).bpm+1);
+    $('tap'+i).onclick=()=>tap(i);
+    $('vol'+i).oninput=e=>{beat(i).vol=Number(e.target.value);saveCfg();insts.filter(x=>x.slot===i&&x.stopAt===Infinity).forEach(x=>x.out.gain.setTargetAtTime(beat(i).vol,ctx.currentTime,0.02));};
+    $('bars'+i).onchange=async e=>{
+      const s=selPattern(i);if(s.kind!=='file')return;
+      s.u.bars=Number(e.target.value);try{await DB.put(s.u)}catch(err){}
+      if(active&&active.slot===i&&!lockBar)restartActive();
+      updateDrumUI();
+    };
+    $('file'+i).onchange=e=>{addLoopFile(i,e.target.files[0]);e.target.value='';};
+    $('del'+i).onclick=()=>deleteLoop(i);
+    $('bBtn'+i).onclick=()=>{if(!ctx){flash('Bitte zuerst „Audio starten“ klicken');return;}drumsPaused=false;if(active&&active.slot===i)stopDrums();else if(active)switchTo(i);else startDrums(i);};
+  }
+  $('dStop').onclick=()=>{drumsPaused=false;stopDrums();};
 }
 
 // ================= Anzeige =================
@@ -675,15 +797,24 @@ function tick(){
     let pk=0;for(let i=0;i<meterData.length;i++){const v=Math.abs(meterData[i]);if(v>pk)pk=v;}
     $('meterBar').style.width=Math.min(100,pk*100)+'%';
     const f=nowF()-outLatF();
-    if(state==='rec'){
-      $('len').textContent='Aufnahme: '+((nowF()-recStart)/sr).toFixed(1)+' s';$('pos').style.width='100%';
+    const n=nowF();
+    let lab=stateNames[state],cls=state;
+    if(state==='rec'&&recQ&&n<recStart){
+      lab='BEREIT';cls='dub';
+      {const nb=Math.ceil((recStart-n)/(recQ.bar/4));$('len').textContent='Aufnahme startet in '+nb+(nb===1?' Schlag':' Schlägen');}$('pos').style.width='0';
+    }else if(state==='rec'){
+      $('len').textContent=recQ?'Aufnahme: Takt '+(Math.floor((n-recStart)/recQ.bar)+1):'Aufnahme: '+((n-recStart)/sr).toFixed(1)+' s';$('pos').style.width='100%';
+    }else if(state==='play'&&L>0&&n<anchor){
+      lab='AUFNAHME';cls='rec';
+      $('len').textContent='Aufnahme endet am Taktende';$('pos').style.width='100%';
     }else if(L>0){
       const bars=lockBar?Math.round(L/lockBar):0;
       $('len').textContent='Looplänge: '+(L/sr).toFixed(2)+' s'+(bars?' · '+bars+' Takt'+(bars>1?'e':''):'');
       $('pos').style.width=(state==='play'||state==='dub')?(((f-anchor)%L+L)%L/L*100)+'%':'0';
     }else{$('len').textContent='–';$('pos').style.width='0';}
+    const st=$('stateTxt');if(st.textContent!==lab)st.textContent=lab;if(st.className!=='state '+cls)st.className='state '+cls;
     let beat=-1;
-    if(drum.on){const bar=curBar();const ph=(((f-drum.origin)%bar)+bar)%bar;if(f>=drum.origin)beat=Math.floor(ph/bar*4);}
+    if(active){const ins=insts.find(x=>x.stopAt!==Infinity&&f<x.stopAt&&f>=x.startAt)||active;const bar=curBar(ins.slot);const ph=(((f-ins.origin)%bar)+bar)%bar;if(f>=ins.startAt)beat=Math.floor(ph/bar*4);}
     dotEls.forEach((d,i)=>d.classList.toggle('on',i===beat));
   }
   requestAnimationFrame(tick);
@@ -750,27 +881,6 @@ $('drumVolR').oninput=e=>{cfg.drumVol=Number(e.target.value);saveCfg();applyCfg(
 $('latN').onchange=e=>{cfg.latMs=Math.max(0,Number(e.target.value)||0);saveCfg();};
 $('monChk').onchange=e=>{cfg.monitor=e.target.checked;saveCfg();applyCfg();};
 $('ccChk').onchange=e=>{cfg.ccAny=e.target.checked;saveCfg();};
-$('drumBtn').onclick=()=>trigger('D');
-$('patSel').onchange=async e=>{
-  const wasOn=drum.on,before=selPattern().kind;
-  cfg.pattern=e.target.value;saveCfg();
-  await prepareSelectedLoop();
-  const after=selPattern().kind;
-  if(wasOn){if(before==='synth'&&after==='synth'){const p=selPattern().p;drum.k=Math.ceil(((ctx.currentTime+0.12)*sr-drum.origin)/(curBar()/p.s));}else restartDrums();}
-  updateDrumUI();
-};
-$('bpmR').oninput=e=>setBpm(Number(e.target.value));
-$('bpmMinus').onclick=()=>setBpm(cfg.bpm-1);
-$('bpmPlus').onclick=()=>setBpm(cfg.bpm+1);
-$('tapBtn').onclick=tap;
-$('barsSel').onchange=async e=>{
-  const s=selPattern();if(s.kind!=='file')return;
-  s.u.bars=Number(e.target.value);try{await DB.put(s.u)}catch(err){}
-  if(drum.on&&!lockBar)restartDrums();
-  updateDrumUI();
-};
-$('fileIn').onchange=e=>{addLoopFile(e.target.files[0]);e.target.value='';};
-$('delLoopBtn').onclick=deleteSelectedLoop;
 document.addEventListener('keydown',e=>{
   if(['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName)||e.repeat)return;
   const k={'1':'A','2':'B','3':'C','4':'D'}[e.key];
@@ -791,7 +901,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
   }).catch(e=>console.warn('Service Worker',e));
 }
 
-applyCfg();renderMap();renderLayers();loadUserLoops();updateDrumUI();requestAnimationFrame(tick);
+buildBeatUI();applyCfg();renderMap();renderLayers();loadUserLoops();updateDrumUI();requestAnimationFrame(tick);
 </script>
 </body>
 </html>
