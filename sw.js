@@ -1,5 +1,5 @@
 // Service Worker BlueBoard Looper – Offline-Speicher und Update-Erkennung
-const VERSION = '5.1';
+const VERSION = '5.2';
 const CACHE = 'bbl-looper-' + VERSION;
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-192.png', './icon-512.png'];
 

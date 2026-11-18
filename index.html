@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
-<title>BlueBoard Looper 5.1</title>
+<title>BlueBoard Looper 5.2</title>
 <style>
 :root{--bg:#111418;--card:#1b2027;--card2:#151a20;--line:#2c333d;--txt:#e8ecf1;--dim:#8b95a3;--rec:#e5484d;--dub:#f5a524;--play:#30a46c;--stop:#5b6573;--acc:#3e8ef7}
 *{box-sizing:border-box}
@@ -60,20 +60,31 @@ label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--txt);font-si
 .vols{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin-top:2px}
 .latbox{display:flex;gap:4px;align-items:center}.latbox input{width:72px;text-align:center}.latbox button{padding:3px 9px}
 /* Pedale */
-.pedals{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:2px 2px 10px}
-.pedal{position:relative;background:linear-gradient(180deg,#434c59 0%,#2b323c 55%,#232931 100%);border:1px solid #556070;border-radius:16px;
- box-shadow:0 8px 0 #0a0c0f,0 12px 18px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.18),inset 0 -2px 0 rgba(0,0,0,.25);
- padding:10px 6px 12px;min-height:170px;text-align:center;cursor:pointer;user-select:none;-webkit-user-select:none;
- transform:translateY(0);transition:transform .07s,box-shadow .07s,background .1s;display:flex;flex-direction:column;justify-content:center;gap:4px}
-.pedal:hover{border-color:#7a8698}
-.pedal.down{transform:translateY(7px);box-shadow:0 1px 0 #0a0c0f,0 2px 5px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.08),inset 0 2px 6px rgba(0,0,0,.35);
- background:linear-gradient(180deg,#3a4e6e 0%,#2a3a55 60%,#22304a 100%);border-color:var(--acc)}
-.pedal .key{font-size:42px;font-weight:800;line-height:1;text-shadow:0 2px 0 rgba(0,0,0,.45)}
-.pedal .fn{font-size:16px;font-weight:600}
-.pedal .fn2{font-size:14px;color:#a9b3c1}
-.led{width:12px;height:12px;border-radius:50%;background:#1a1e24;margin:0 auto 4px;box-shadow:inset 0 1px 2px #000}
-.led.red{background:var(--rec);box-shadow:0 0 10px var(--rec)}.led.amber{background:var(--dub);box-shadow:0 0 10px var(--dub)}
-.led.green{background:var(--play);box-shadow:0 0 10px var(--play)}.led.blue{background:var(--acc);box-shadow:0 0 10px var(--acc)}
+.pedals{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:2px 2px 8px}
+/* Effektpedal mit Chrom-Fußschalter */
+.pedal{position:relative;border-radius:16px;cursor:pointer;user-select:none;-webkit-user-select:none;min-height:230px;
+ background:repeating-linear-gradient(90deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px),linear-gradient(160deg,#5d6672 0%,#3a414b 45%,#262b32 100%);
+ box-shadow:0 14px 22px rgba(0,0,0,.6),0 4px 0 #15181c,inset 0 1px 0 rgba(255,255,255,.25),inset 0 -3px 6px rgba(0,0,0,.4);
+ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:12px 6px;transition:transform .07s,box-shadow .07s}
+.pedal .scr{position:absolute;width:9px;height:9px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#d7dbe0,#5c636c 70%);box-shadow:inset 0 0 0 1px rgba(0,0,0,.4)}
+.pedal .scr.a{top:8px;left:8px}.pedal .scr.b{top:8px;right:8px}.pedal .scr.c{bottom:8px;left:8px}.pedal .scr.d{bottom:8px;right:8px}
+.pedal .key{font-size:32px;font-weight:900;line-height:1;color:#e9edf2;text-shadow:0 1px 0 rgba(255,255,255,.25),0 -1px 0 rgba(0,0,0,.6)}
+.pedal .nut{width:80px;height:80px;border-radius:50%;display:grid;place-items:center;margin:2px 0 4px;transition:box-shadow .08s;
+ background:conic-gradient(from 20deg,#9aa2ac,#e6e9ed,#7c848e,#d5d9de,#6c747e,#e6e9ed,#9aa2ac);box-shadow:0 6px 10px rgba(0,0,0,.6),inset 0 0 0 2px rgba(0,0,0,.35)}
+.pedal .knob{width:56px;height:56px;border-radius:50%;transition:transform .06s,box-shadow .06s,filter .06s;
+ background:radial-gradient(circle at 35% 28%,#ffffff 0%,#e3e6ea 18%,#a7aeb7 45%,#68707a 75%,#454b53 100%);
+ box-shadow:0 8px 0 #2b3037,0 10px 10px rgba(0,0,0,.6),inset 0 -3px 5px rgba(0,0,0,.35)}
+.pedal .fn{font-size:15px;font-weight:600;text-align:center;line-height:1.2}
+.pedal .fn2{font-size:13px;color:#b4bdc9;text-align:center}
+.pedal:hover .nut{box-shadow:0 6px 10px rgba(0,0,0,.6),inset 0 0 0 2px rgba(0,0,0,.35),0 0 0 2px rgba(62,142,247,.35)}
+.pedal.down{transform:translateY(3px);box-shadow:0 8px 14px rgba(0,0,0,.6),0 1px 0 #15181c,inset 0 1px 0 rgba(255,255,255,.2),inset 0 -3px 6px rgba(0,0,0,.4)}
+.pedal.down .knob{transform:translateY(8px) scale(.93);filter:brightness(.82);box-shadow:0 1px 0 #2b3037,0 2px 3px rgba(0,0,0,.6),inset 0 2px 6px rgba(0,0,0,.45)}
+.pedal.down .nut{box-shadow:0 3px 6px rgba(0,0,0,.6),inset 0 0 0 2px rgba(0,0,0,.35),0 0 16px 5px rgba(62,142,247,.85)}
+.led{width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#3a3f46,#16191d);box-shadow:inset 0 1px 2px #000,0 0 0 2px #1a1d22}
+.led.red{background:radial-gradient(circle at 40% 35%,#ffd0d0,#ff3b3b 45%,#a10e12);box-shadow:0 0 12px 3px rgba(255,60,60,.75),0 0 0 2px #1a1d22}
+.led.amber{background:radial-gradient(circle at 40% 35%,#fff0c8,#f5a524 45%,#9a5d05);box-shadow:0 0 12px 3px rgba(245,165,36,.7),0 0 0 2px #1a1d22}
+.led.green{background:radial-gradient(circle at 40% 35%,#d6ffe6,#33d17a 45%,#0d7a3c);box-shadow:0 0 12px 3px rgba(50,210,120,.7),0 0 0 2px #1a1d22}
+.led.blue{background:radial-gradient(circle at 40% 35%,#dbe9ff,#3e8ef7 45%,#16509f);box-shadow:0 0 12px 3px rgba(62,142,247,.75),0 0 0 2px #1a1d22}
 /* Drums */
 #dots{display:flex;gap:6px}
 .dot{width:14px;height:14px;border-radius:50%;background:#0f1216;border:1px solid var(--line)}
@@ -153,10 +164,10 @@ label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--txt);font-si
     </div>
   </section>
   <section class="pedals">
-    <div class="pedal" data-k="A"><div class="led" id="ledA"></div><div class="key">A</div><div class="fn">Aufnahme · Play · Overdub</div></div>
-    <div class="pedal" data-k="B"><div class="led" id="ledB"></div><div class="key">B</div><div class="fn">Letzte Stufe zurück</div></div>
-    <div class="pedal" data-k="C"><div class="led" id="ledC"></div><div class="key">C</div><div class="fn">Stop / Play</div><div class="fn2">2× = alles löschen</div></div>
-    <div class="pedal" data-k="D"><div class="led" id="ledD"></div><div class="key">D</div><div class="fn">Beat 1 / Stop</div><div class="fn2">2× = Beat wechseln</div></div>
+    <div class="pedal" data-k="A"><i class="scr a"></i><i class="scr b"></i><i class="scr c"></i><i class="scr d"></i><div class="led" id="ledA"></div><div class="key">A</div><div class="nut"><div class="knob"></div></div><div class="fn">Aufnahme · Play · Overdub</div></div>
+    <div class="pedal" data-k="B"><i class="scr a"></i><i class="scr b"></i><i class="scr c"></i><i class="scr d"></i><div class="led" id="ledB"></div><div class="key">B</div><div class="nut"><div class="knob"></div></div><div class="fn">Letzte Stufe zurück</div></div>
+    <div class="pedal" data-k="C"><i class="scr a"></i><i class="scr b"></i><i class="scr c"></i><i class="scr d"></i><div class="led" id="ledC"></div><div class="key">C</div><div class="nut"><div class="knob"></div></div><div class="fn">Stop / Play</div><div class="fn2">2× = alles löschen</div></div>
+    <div class="pedal" data-k="D"><i class="scr a"></i><i class="scr b"></i><i class="scr c"></i><i class="scr d"></i><div class="led" id="ledD"></div><div class="key">D</div><div class="nut"><div class="knob"></div></div><div class="fn">Beat 1 / Stop</div><div class="fn2">2× = Beat wechseln</div></div>
   </section>
 
   <section class="card span2">
@@ -257,7 +268,7 @@ label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--txt);font-si
 
 <script>
 "use strict";
-const VERSION='5.1';
+const VERSION='5.2';
 const KONTAKT_URL='https://github.com/app-laden';
 const $=id=>document.getElementById(id);
 $('ver').textContent=VERSION;$('ver2').textContent=VERSION;
@@ -572,9 +583,9 @@ function pressVis(k,hold){
   const el=document.querySelector(`.pedal[data-k="${k}"]`);if(!el)return;
   el.classList.add('down');clearTimeout(el._t);
   const mr=$('map'+k)&&$('map'+k).parentElement;if(mr){mr.classList.add('down');setTimeout(()=>mr.classList.remove('down'),400);}
-  if(!hold&&!held[k])el._t=setTimeout(()=>el.classList.remove('down'),160);
+  if(!hold&&!held[k])el._t=setTimeout(()=>el.classList.remove('down'),220);
 }
-function releaseVis(k){held[k]=false;const el=document.querySelector(`.pedal[data-k="${k}"]`);if(el){clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('down'),60);}}
+function releaseVis(k){held[k]=false;const el=document.querySelector(`.pedal[data-k="${k}"]`);if(el){clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('down'),120);}}
 async function trigger(k){
   pressVis(k);
   if(!ctx){flash('Bitte zuerst „Audio starten“ klicken');return;}
