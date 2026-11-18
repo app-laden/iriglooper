@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
-<title>BlueBoard Looper 4.2</title>
+<title>BlueBoard Looper 4.3</title>
 <style>
 :root{--bg:#111418;--card:#1b2027;--line:#2c333d;--txt:#e8ecf1;--dim:#8b95a3;--rec:#e5484d;--dub:#f5a524;--play:#30a46c;--stop:#5b6573;--acc:#3e8ef7}
 *{box-sizing:border-box}
@@ -29,8 +29,12 @@ button{background:#2a313b;color:var(--txt);border:1px solid var(--line);border-r
 button:hover{border-color:var(--acc)}button:disabled{opacity:.4;cursor:default}
 .primary{background:var(--acc);border:none;font-weight:600;padding:10px 16px}
 .small{font-size:12px;color:var(--dim)}
-.meter{height:8px;background:#0f1216;border-radius:4px;overflow:hidden;margin-top:12px}
-#meterBar{height:100%;width:0;background:linear-gradient(90deg,var(--play),var(--dub) 75%,var(--rec))}
+.mrow{display:flex;align-items:center;gap:10px;margin-top:10px}
+.mlab{width:64px;font-size:13px;color:var(--dim)}
+.meter{flex:1;height:10px;background:#0f1216;border-radius:5px;overflow:hidden}
+#meterBar,#outBar{height:100%;width:0;background:linear-gradient(90deg,var(--play),var(--dub) 75%,var(--rec))}
+.lamp{width:92px;text-align:center;font-size:12px;font-weight:700;border-radius:6px;padding:2px 0;background:#0f1216;color:var(--dim);border:1px solid var(--line)}
+.lamp.ok{color:var(--play);border-color:var(--play)}.lamp.warn{background:var(--dub);color:#111;border-color:var(--dub)}.lamp.clip{background:var(--rec);color:#fff;border-color:var(--rec)}
 #midiInfo{margin-top:8px}
 .state{font-size:44px;font-weight:800;letter-spacing:2px;text-align:center;padding:6px;border-radius:10px}
 .state.empty{color:var(--dim)}.state.rec{color:#fff;background:var(--rec)}.state.dub{color:#111;background:var(--dub)}
@@ -79,6 +83,8 @@ button:hover{border-color:var(--acc)}button:disabled{opacity:.4;cursor:default}
     <li><b>D</b>: einmal = Beat 1 starten bzw. laufende Drums stoppen; zweimal schnell = zwischen Beat 1 und Beat 2 wechseln (genau am nächsten Taktanfang). Sind die Drums aus, startet D zweimal direkt Beat 2. Weil die App kurz auf einen zweiten Tritt wartet, stoppt D einmal mit knapp einer halben Sekunde Verzögerung.</li>
     <li><b>Zwei Beats:</b> Jeder Beat hat eigenes Pattern bzw. eigene Loop-Datei, eigenes Tempo und eigene Lautstärke. Ist ein Loop aufgenommen, laufen beide Beats in dessen Tempo; hat ein Beat etwa das halbe oder doppelte Tempo, bleibt dieses Verhältnis erhalten (z. B. Halftime-Teil).</li>
     <li>Ohne Pedal: Tasten 1–4 auf der Tastatur oder Kacheln anklicken.</li>
+    <li><b>Mitschnitt:</b> läuft nach „Audio starten“ immer mit. Unter „Speichern“ wählst du, wie weit er maximal zurückreicht (1–15 Minuten, ca. 5,8 MB Arbeitsspeicher je Minute) und was gespeichert wird: die letzten 4–64 Takte (mit Drums oder Loop) oder die letzten Minuten. Die WAV-Datei landet im Download-Ordner. Ändern der Puffer-Länge verwirft den bisherigen Mitschnitt.</li>
+    <li><b>Loops sichern:</b> speichert Stufen, Tempo und beide Beats im Browser. „Laden“ holt den Loop zurück (gestoppt) – C oder A startet ihn, Overdubs gehen wie gewohnt. „WAV“ speichert einen Durchlauf des Loops ohne Drums.</li>
     <li><b>Takt-Synchronisation:</b> Laufen die Drums, beginnt und endet die erste Aufnahme immer an einem Taktanfang. Tritt A irgendwann im Takt vor dem Einsatz („BEREIT“, Countdown in Schlägen) – die Aufnahme startet am nächsten Taktanfang. Ein Tritt bis ein Viertel nach dem Taktanfang (also etwas zu spät) zählt noch zu diesem Takt. Zum Beenden A im letzten Takt treten: Die Aufnahme läuft bis zum Taktende und der Loop schließt sich nahtlos. Danach ist das Tempo an den Loop gebunden. Startest du die Drums erst zu einem fertigen Loop, passt sich das Tempo der Drums dem Loop an.</li>
     <li><b>Eigene Drum-Loops:</b> lizenzfreie WAV- oder MP3-Loops (z. B. von looperman.com) beim gewünschten Beat mit „Loop-Datei laden“ übernehmen. Steht das Tempo im Dateinamen (z. B. „Funk 95 BPM“), erkennt die App die Taktzahl selbst; sonst unter „Takte“ korrigieren. Die Dateien bleiben nur in diesem Browser auf diesem Gerät.</li>
     <li>BlueBoard: beim Einschalten <b>C</b> gedrückt halten („MIDI over Bluetooth mode 2“), am Mac über Audio-MIDI-Setup → MIDI-Studio → Bluetooth verbinden. Die Tasten senden CC 20–23 und sind voreingestellt.</li>
@@ -112,7 +118,9 @@ button:hover{border-color:var(--acc)}button:disabled{opacity:.4;cursor:default}
     <label class="chk"><input type="checkbox" id="monChk"> Eingang durch die App hören (Monitor)</label>
     <label class="chk"><input type="checkbox" id="ccChk"> CC: jeder Wert löst aus (Toggle-Modus)</label>
   </div>
-  <div class="meter"><div id="meterBar"></div></div>
+  <div class="mrow"><span class="mlab">Eingang</span><div class="meter"><div id="meterBar"></div></div><span class="lamp" id="inLamp">OK</span></div>
+  <div class="mrow"><span class="mlab">Ausgang</span><div class="meter"><div id="outBar"></div></div><span class="lamp" id="outLamp">OK</span></div>
+  <div class="small" id="meterHint">Eingang: Signal vom Bass (nach Eingangspegel). Ausgang: Loops + Drums. Rot = übersteuert, Gelb = Begrenzer arbeitet stark.</div>
   <div id="midiInfo" class="small"></div>
 </section>
 
@@ -140,6 +148,23 @@ button:hover{border-color:var(--acc)}button:disabled{opacity:.4;cursor:default}
 </section>
 
 <section class="card">
+  <h2>Speichern</h2>
+  <h3 style="margin-top:4px">Mitschnitt (Lied)</h3>
+  <div class="small">Die App nimmt im Hintergrund ständig alles auf (Bass, Loops und auf Wunsch Drums). Gefällt dir etwas, speicherst du hinterher die letzten Takte oder Minuten als WAV-Datei.</div>
+  <div class="grid">
+    <label>Mitschnitt reicht maximal zurück<select id="recMinSel"><option value="1">1 Minute</option><option value="2">2 Minuten</option><option value="5">5 Minuten</option><option value="10">10 Minuten</option><option value="15">15 Minuten</option></select></label>
+    <label>Speichern<select id="backSel"></select></label>
+    <label class="chk"><input type="checkbox" id="recDrumsChk"> Drums im Mitschnitt</label>
+  </div>
+  <div class="row"><span id="recInfo" class="small"></span><button id="saveMixBtn" class="primary">Mitschnitt als WAV speichern</button></div>
+  <h3>Loops</h3>
+  <div class="small">Sichert den aktuellen Loop mit allen Stufen und beiden Beat-Einstellungen zum späteren Weiterspielen (nur auf diesem Gerät).</div>
+  <div class="row"><input type="text" id="sesName" placeholder="Name (optional)" style="flex:1;min-width:160px;background:#0f1216;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:8px">
+    <span><button id="saveSesBtn" class="primary">Loop sichern</button> <button id="loopWavBtn">Loop als WAV</button></span></div>
+  <div id="sesList" style="margin-top:8px"></div>
+</section>
+
+<section class="card">
   <h2>Stufen (Layer)</h2>
   <div id="layers"><div class="small">Noch keine Aufnahme.</div></div>
   <div class="row"><button id="redoBtn">↻ Stufe wiederherstellen</button><button id="clearBtn">Alles löschen</button></div>
@@ -147,7 +172,7 @@ button:hover{border-color:var(--acc)}button:disabled{opacity:.4;cursor:default}
 
 <script>
 "use strict";
-const VERSION='4.2';
+const VERSION='4.3';
 const KONTAKT_URL='https://github.com/app-laden';
 const $=id=>document.getElementById(id);
 $('ver').textContent=VERSION;$('ver2').textContent=VERSION;
@@ -158,7 +183,7 @@ const store={
   set(k,v){try{localStorage.setItem('bbl_'+k,JSON.stringify(v))}catch(e){}}
 };
 let cfg=Object.assign({latMs:null,ccAny:false,monitor:false,inGain:1,loopVol:0.9,chan:0,inDev:'',outDev:'',
-  drumVol:0.8,bpm:100,pattern:'p:0'},store.get('cfg',{}));
+  drumVol:0.8,bpm:100,pattern:'p:0',recMin:5,recDrums:true,back:'all'},store.get('cfg',{}));
 if(!Array.isArray(cfg.beats))cfg.beats=[{pattern:cfg.pattern||'p:0',bpm:cfg.bpm||100,vol:1},{pattern:'p:3',bpm:cfg.bpm||100,vol:1}];
 let map={A:'c0:20',B:'c0:21',C:'c0:22',D:'c0:23'};
 {const m=store.get('map',{});for(const k in map)if(m[k])map[k]=m[k];}
@@ -180,7 +205,7 @@ return true;}}
 registerProcessor('cap',Cap);`;
 
 // ================= Audio-Grundlagen =================
-let ctx=null,sr=48000,stream=null,src=null,inGain,monGain,loopBus,drumBus,cap,analyser,limiter,noiseBuf;
+let ctx=null,sr=48000,stream=null,src=null,inGain,monGain,loopBus,drumBus,cap,analyser,limiter,noiseBuf,outAn,rawAn;
 let state='empty';      // empty | rec | play | dub | stopped
 let L=0,anchor=0;       // Looplänge und Bezugspunkt (Samples)
 let lockBar=null;       // Taktlänge (Samples), an die der Loop gebunden ist
@@ -201,6 +226,8 @@ async function startAudio(){
     limiter=ctx.createDynamicsCompressor();
     limiter.threshold.value=-3;limiter.knee.value=0;limiter.ratio.value=20;limiter.attack.value=0.002;limiter.release.value=0.15;
     loopBus.connect(limiter);drumBus.connect(limiter);limiter.connect(ctx.destination);
+    outAn=ctx.createAnalyser();outAn.fftSize=1024;limiter.connect(outAn);
+    rawAn=ctx.createAnalyser();rawAn.fftSize=1024;
     const silent=ctx.createGain();silent.gain.value=0;silent.connect(ctx.destination);
     await makeCapture(silent);
     inGain.connect(analyser);
@@ -220,34 +247,47 @@ async function startAudio(){
   }
 }
 
-let capMode='',capSetCh=()=>{};
-async function makeCapture(silent){
+let capMode='',capSetCh=()=>{},capKind=null;
+async function initCaptureModule(){
   const tries=[
     ()=>URL.createObjectURL(new Blob([WORKLET],{type:'application/javascript'})),
     ()=>'data:application/javascript;base64,'+btoa(WORKLET)
   ];
   for(const t of tries){
-    try{
-      await ctx.audioWorklet.addModule(t());
-      cap=new AudioWorkletNode(ctx,'cap',{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1]});
-      inGain.connect(cap);cap.connect(silent);
-      cap.port.onmessage=onChunk;
-      capSetCh=ch=>cap.port.postMessage({ch});
-      capMode='AudioWorklet';
-      return;
-    }catch(e){console.warn('Worklet nicht ladbar',e);}
+    try{await ctx.audioWorklet.addModule(t());capKind='worklet';capMode='AudioWorklet';return;}
+    catch(e){console.warn('Worklet nicht ladbar',e);}
   }
-  const N=1024;
-  cap=ctx.createScriptProcessor(N,2,1);
-  let ch=cfg.chan;capSetCh=c=>{ch=c;};
-  cap.onaudioprocess=e=>{
+  capKind='sp';capMode='Ersatzmodus (Datei lokal geöffnet)';
+}
+function makeCapNode(srcNode,silent,onData,ch){
+  if(capKind==='worklet'){
+    const n=new AudioWorkletNode(ctx,'cap',{numberOfInputs:1,numberOfOutputs:1,outputChannelCount:[1]});
+    srcNode.connect(n);n.connect(silent);n.port.onmessage=onData;n.port.postMessage({ch});
+    return{node:n,setCh:c=>n.port.postMessage({ch:c})};
+  }
+  const N=1024,n=ctx.createScriptProcessor(N,2,1);let c=ch;
+  n.onaudioprocess=e=>{
     const ib=e.inputBuffer,d=new Float32Array(ib.length);
-    if(ch<0&&ib.numberOfChannels>1){const a=ib.getChannelData(0),b=ib.getChannelData(1);for(let i=0;i<d.length;i++)d[i]=(a[i]+b[i])*0.5;}
-    else d.set(ib.getChannelData(Math.min(Math.max(ch,0),ib.numberOfChannels-1)));
-    onChunk({data:{f:Math.round(e.playbackTime*sr)-N,d}});
+    if(c<0&&ib.numberOfChannels>1){const a=ib.getChannelData(0),b=ib.getChannelData(1);for(let i=0;i<d.length;i++)d[i]=(a[i]+b[i])*0.5;}
+    else d.set(ib.getChannelData(Math.min(Math.max(c,0),ib.numberOfChannels-1)));
+    onData({data:{f:Math.round(e.playbackTime*sr)-N,d}});
   };
-  inGain.connect(cap);cap.connect(silent);
-  capMode='Ersatzmodus (Datei lokal geöffnet)';
+  srcNode.connect(n);n.connect(silent);
+  return{node:n,setCh:x=>{c=x;}};
+}
+let recMix,recDelay,drumRec,recLim;
+async function makeCapture(silent){
+  await initCaptureModule();
+  const c=makeCapNode(inGain,silent,onChunk,cfg.chan);cap=c.node;capSetCh=c.setCh;
+  // Mitschnitt: Bass + Loops + (Drums). Loops/Drums werden um die Latenz verzögert,
+  // damit sie im Mitschnitt genau zum gespielten Bass passen.
+  recMix=ctx.createGain();recDelay=ctx.createDelay(1.0);drumRec=ctx.createGain();
+  recLim=ctx.createDynamicsCompressor();
+  recLim.threshold.value=-2;recLim.knee.value=0;recLim.ratio.value=20;recLim.attack.value=0.002;recLim.release.value=0.15;
+  inGain.connect(recMix);loopBus.connect(recDelay);drumBus.connect(drumRec);drumRec.connect(recDelay);recDelay.connect(recMix);
+  recMix.connect(recLim);
+  makeCapNode(recLim,silent,onMix,-1);
+  allocRing();
 }
 
 async function openInput(id){
@@ -259,7 +299,7 @@ async function openInput(id){
   }catch(e){
     stream=await navigator.mediaDevices.getUserMedia({audio:base});
   }
-  src=ctx.createMediaStreamSource(stream);src.connect(inGain);
+  src=ctx.createMediaStreamSource(stream);src.connect(inGain);if(rawAn)src.connect(rawAn);
 }
 
 async function listDevices(){
@@ -282,6 +322,8 @@ function applyCfg(){
   if(!ctx)return;
   inGain.gain.value=cfg.inGain;loopBus.gain.value=cfg.loopVol;drumBus.gain.value=cfg.drumVol;
   monGain.gain.value=cfg.monitor?1:0;
+  if(recDelay)recDelay.delayTime.value=Math.min(0.99,(cfg.latMs||0)/1000);
+  if(drumRec)drumRec.gain.value=cfg.recDrums?1:0;
   capSetCh(cfg.chan);
 }
 
@@ -623,13 +665,15 @@ function clap(t,v,out){
 const DB={
   db:null,
   open(){return new Promise((res,rej)=>{if(!window.indexedDB)return rej(new Error('kein IndexedDB'));
-    const r=indexedDB.open('bbl-loops',1);
-    r.onupgradeneeded=()=>r.result.createObjectStore('loops',{keyPath:'id',autoIncrement:true});
+    const r=indexedDB.open('bbl-loops',2);
+    r.onupgradeneeded=()=>{const db=r.result;
+      if(!db.objectStoreNames.contains('loops'))db.createObjectStore('loops',{keyPath:'id',autoIncrement:true});
+      if(!db.objectStoreNames.contains('sessions'))db.createObjectStore('sessions',{keyPath:'id',autoIncrement:true});};
     r.onsuccess=()=>{DB.db=r.result;res();};r.onerror=()=>rej(r.error);});},
-  tx(mode){return DB.db.transaction('loops',mode).objectStore('loops');},
-  all(){return new Promise((res,rej)=>{const q=DB.tx('readonly').getAll();q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);});},
-  put(o){return new Promise((res,rej)=>{const q=DB.tx('readwrite').put(o);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);});},
-  del(id){return new Promise((res,rej)=>{const q=DB.tx('readwrite').delete(id);q.onsuccess=()=>res();q.onerror=()=>rej(q.error);});}
+  tx(mode,st='loops'){return DB.db.transaction(st,mode).objectStore(st);},
+  all(st){return new Promise((res,rej)=>{const q=DB.tx('readonly',st).getAll();q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);});},
+  put(o,st){return new Promise((res,rej)=>{const q=DB.tx('readwrite',st).put(o);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);});},
+  del(id,st){return new Promise((res,rej)=>{const q=DB.tx('readwrite',st).delete(id);q.onsuccess=()=>res();q.onerror=()=>rej(q.error);});}
 };
 function guessBars(name,dur){
   const m=/(\d{2,3})\s*-?\s*bpm/i.exec(name)||/(?:^|[^\d])(\d{2,3})(?:[^\d]|$)/.exec(name);
@@ -640,7 +684,7 @@ function guessBars(name,dur){
 }
 async function loadUserLoops(){
   try{await DB.open();userLoops=await DB.all();}catch(e){console.warn(e);userLoops=[];}
-  fillPatterns();
+  fillPatterns();loadSessions();
 }
 async function decodeLoop(u){
   if(decoded[u.id]||!ctx)return decoded[u.id];
@@ -772,6 +816,174 @@ function buildBeatUI(){
   $('dStop').onclick=()=>{drumsPaused=false;stopDrums();};
 }
 
+// ================= Speichern: Mitschnitt und Loops =================
+let ring=null,ringLen=0,mixStart=null,mixEnd=0;
+function allocRing(){
+  ringLen=Math.round(cfg.recMin*60*sr);
+  try{ring=new Int16Array(ringLen);}catch(e){ring=null;flash('Zu wenig Speicher für den Mitschnitt – kürzeren Puffer wählen');}
+  mixStart=null;mixEnd=0;
+}
+function onMix(e){
+  const {f,d}=e.data;if(!ring)return;
+  if(mixStart===null)mixStart=f;
+  for(let i=0;i<d.length;i++){let v=d[i];v=v>1?1:v<-1?-1:v;ring[(f+i)%ringLen]=v*32767|0;}
+  mixEnd=f+d.length;
+}
+function mixAvail(){if(mixStart===null)return[0,0];return[Math.max(mixStart,mixEnd-ringLen),mixEnd];}
+function wavBlob(int16,rate){
+  const n=int16.length,buf=new ArrayBuffer(44+n*2),v=new DataView(buf);
+  const w=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i));};
+  w(0,'RIFF');v.setUint32(4,36+n*2,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+  v.setUint32(24,rate,true);v.setUint32(28,rate*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,n*2,true);
+  new Int16Array(buf,44).set(int16);
+  return new Blob([buf],{type:'audio/wav'});
+}
+function download(blob,name){
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},2000);
+}
+function stamp(){const d=new Date(),p=x=>String(x).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'_'+p(d.getHours())+p(d.getMinutes());}
+function safeName(s){return(s||'').replace(/[\\/:*?"<>|]+/g,'').trim();}
+function gridInfo(){
+  if(lockBar&&L>0)return{bar:lockBar,origin:anchor};
+  if(active)return{bar:curBar(active.slot),origin:active.origin};
+  return null;
+}
+function saveMix(){
+  if(!ctx||!ring){flash('Bitte zuerst „Audio starten“ klicken');return;}
+  const [a0,a1]=mixAvail();if(a1-a0<sr){flash('Noch nichts im Mitschnitt');return;}
+  const v=cfg.back||'all',lat=latF();let from,to=a1,label;
+  if(v[0]==='b'){
+    const g=gridInfo();if(!g){flash('Takte gehen nur mit laufenden Drums oder einem Loop – bitte Minuten wählen');return;}
+    const n=Number(v.slice(1));
+    const last=g.origin+Math.floor((a1-lat-g.origin)/g.bar)*g.bar;
+    to=Math.round(last+lat);from=Math.round(to-n*g.bar);label=n+'Takte';
+  }else if(v[0]==='m'){from=Math.round(a1-Number(v.slice(1))*60*sr);label=v.slice(1).replace('.',',')+'min';}
+  else{from=a0;label='alles';}
+  if(from<a0){from=a0;flash('Mitschnitt reicht nicht so weit zurück – gespeichert wird, was vorhanden ist');}
+  if(to<=from){flash('Zu kurz zum Speichern');return;}
+  const out=new Int16Array(to-from);
+  for(let i=0;i<out.length;i++)out[i]=ring[(from+i)%ringLen];
+  const fd=Math.min(Math.round(sr*0.01),out.length>>1);
+  for(let i=0;i<fd;i++){const g=i/fd;out[i]=out[i]*g;out[out.length-1-i]=out[out.length-1-i]*g;}
+  download(wavBlob(out,sr),'Looper-Mitschnitt_'+stamp()+'_'+label+'.wav');
+  flash('Mitschnitt gespeichert ('+fmtTime((to-from)/sr)+') – liegt im Download-Ordner');
+}
+function fmtTime(s){s=Math.round(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+function fillBack(){
+  const sel=$('backSel');sel.innerHTML='';
+  const add=(v,t)=>{const o=document.createElement('option');o.value=v;o.textContent=t;sel.appendChild(o);};
+  [4,8,16,32,64].forEach(n=>add('b'+n,'letzte '+n+' Takte'));
+  [0.5,1,2,5,10,15].filter(m=>m<=cfg.recMin).forEach(m=>add('m'+m,m<1?'letzte 30 Sekunden':'letzte '+m+(m===1?' Minute':' Minuten')));
+  add('all','alles im Puffer (bis '+cfg.recMin+' Min.)');
+  if(![...sel.options].some(o=>o.value===cfg.back))cfg.back='all';
+  sel.value=cfg.back;
+}
+function updateRecInfo(){
+  if(!ring){$('recInfo').textContent=ctx?'':'Mitschnitt startet mit „Audio starten“.';return;}
+  const [a0,a1]=mixAvail();
+  $('recInfo').textContent='Mitschnitt läuft · im Puffer: '+fmtTime((a1-a0)/sr)+' von '+fmtTime(ringLen/sr);
+}
+
+// ---------- Loops sichern (mit Stufen und Beat-Einstellungen) ----------
+let sessions=[];
+function sesInfo(s){
+  const bars=s.lockBar?Math.round(s.L/s.lockBar):0;
+  const d=new Date(s.date);
+  return (bars?bars+' Takt'+(bars>1?'e':'')+' · '+Math.round(240*s.sr/s.lockBar)+' BPM':(s.L/s.sr).toFixed(1)+' s')+' · '+s.layers.length+' Stufe'+(s.layers.length>1?'n':'')+' · '+d.toLocaleDateString('de-DE')+' '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
+}
+async function loadSessions(){try{sessions=await DB.all('sessions');}catch(e){sessions=[];}renderSessions();}
+function renderSessions(){
+  const box=$('sesList');box.innerHTML='';
+  if(!sessions.length){box.innerHTML='<div class="small">Noch keine Loops gesichert.</div>';return;}
+  sessions.slice().sort((a,b)=>b.date-a.date).forEach(s=>{
+    const row=document.createElement('div');row.className='layer';
+    const t=document.createElement('span');t.innerHTML='<b></b><br><span class="small"></span>';
+    t.querySelector('b').textContent=s.name;t.querySelector('.small').textContent=sesInfo(s);
+    const bt=document.createElement('span');
+    const mk=(txt,fn)=>{const b=document.createElement('button');b.textContent=txt;b.onclick=fn;b.style.marginLeft='6px';bt.appendChild(b);return b;};
+    mk('Laden',()=>loadSession(s));
+    mk('WAV',()=>exportSessionWav(s));
+    const del=mk('Löschen',async()=>{
+      if(del.dataset.arm!=='1'){del.dataset.arm='1';del.textContent='Wirklich?';setTimeout(()=>{del.dataset.arm='';del.textContent='Löschen';},3000);return;}
+      try{await DB.del(s.id,'sessions');}catch(e){}
+      sessions=sessions.filter(x=>x.id!==s.id);renderSessions();flash('Gesicherter Loop gelöscht');
+    });
+    row.append(t,bt);box.appendChild(row);
+  });
+}
+async function saveSession(){
+  if(!ctx||!L||!layers.length){flash('Kein Loop zum Sichern vorhanden');return;}
+  const name=safeName($('sesName').value)||('Loop '+stamp().replace('_',' '));
+  const s={name,date:Date.now(),sr,L,lockBar,
+    layers:layers.map(l=>({data:l.buf.getChannelData(0).slice().buffer,muted:l.muted})),
+    beats:JSON.parse(JSON.stringify(cfg.beats)),
+    slot:active?active.slot:(drumsPaused?pausedSlot:null)};
+  try{s.id=await DB.put(s,'sessions');}catch(e){flash('Sichern fehlgeschlagen: '+e.message);return;}
+  sessions.push(s);renderSessions();$('sesName').value='';
+  flash('Loop „'+name+'“ gesichert');
+}
+function resample(d,len){
+  if(d.length===len)return d;
+  const out=new Float32Array(len),r=(d.length-1)/Math.max(1,len-1);
+  for(let i=0;i<len;i++){const x=i*r,j=Math.floor(x),f=x-j;out[i]=d[j]*(1-f)+(d[Math.min(j+1,d.length-1)])*f;}
+  return out;
+}
+async function loadSession(s){
+  if(!ctx){flash('Bitte zuerst „Audio starten“ klicken');return;}
+  if(dTimer){clearTimeout(dTimer);dTimer=null;}
+  stopDrums();clearAll();
+  const ratio=sr/s.sr;
+  L=Math.round(s.L*ratio);lockBar=s.lockBar?s.lockBar*ratio:null;anchor=nowF();
+  cfg.beats=JSON.parse(JSON.stringify(s.beats));saveCfg();
+  fillPatterns();await prepareLoops();
+  for(const ly of s.layers){
+    const d=resample(new Float32Array(ly.data),L);
+    addLayer(d);
+    const l=layers[layers.length-1];l.muted=!!ly.muted;l.gain.gain.value=l.muted?0:1;
+  }
+  setState('stopped');
+  if(s.slot!=null){drumsPaused=true;pausedSlot=s.slot;}
+  renderLayers();updateDrumUI();
+  flash('„'+s.name+'“ geladen – C (oder A) startet Loop'+(s.slot!=null?' und Drums':''));
+}
+function mixLayers(list,len){
+  const out=new Int16Array(len),acc=new Float32Array(len);
+  list.forEach(d=>{for(let i=0;i<len;i++)acc[i]+=d[i];});
+  let pk=0;for(let i=0;i<len;i++){const a=Math.abs(acc[i]);if(a>pk)pk=a;}
+  const g=pk>0.99?0.99/pk:1;
+  for(let i=0;i<len;i++)out[i]=acc[i]*g*32767|0;
+  return out;
+}
+function exportSessionWav(s){
+  const list=s.layers.filter(l=>!l.muted).map(l=>new Float32Array(l.data));
+  if(!list.length){flash('Alle Stufen stumm');return;}
+  download(wavBlob(mixLayers(list,s.L),s.sr),'Loop_'+safeName(s.name)+'.wav');
+}
+function exportCurrentWav(){
+  if(!ctx||!L||!layers.length){flash('Kein Loop vorhanden');return;}
+  const list=layers.filter(l=>!l.muted).map(l=>l.buf.getChannelData(0));
+  if(!list.length){flash('Alle Stufen stumm');return;}
+  download(wavBlob(mixLayers(list,L),sr),'Loop_'+stamp()+'.wav');
+  flash('Loop als WAV gespeichert (ohne Drums) – liegt im Download-Ordner');
+}
+function initSaveUI(){
+  $('recMinSel').value=String(cfg.recMin);
+  $('recDrumsChk').checked=cfg.recDrums;
+  fillBack();
+  $('recMinSel').onchange=e=>{
+    cfg.recMin=Number(e.target.value);saveCfg();fillBack();
+    if(ctx){allocRing();flash('Mitschnitt-Puffer auf '+cfg.recMin+' Min. gesetzt (bisheriger Mitschnitt verworfen)');}
+  };
+  $('backSel').onchange=e=>{cfg.back=e.target.value;saveCfg();};
+  $('recDrumsChk').onchange=e=>{cfg.recDrums=e.target.checked;saveCfg();applyCfg();};
+  $('saveMixBtn').onclick=saveMix;
+  $('saveSesBtn').onclick=saveSession;
+  $('loopWavBtn').onclick=exportCurrentWav;
+  setInterval(updateRecInfo,1000);updateRecInfo();
+  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
+}
+
 // ================= Anzeige =================
 const stateNames={empty:'LEER',rec:'AUFNAHME',play:'WIEDERGABE',dub:'OVERDUB',stopped:'GESTOPPT'};
 function setState(s){state=s;const el=$('stateTxt');el.className='state '+s;el.textContent=stateNames[s];renderLayers();}
@@ -790,12 +1002,21 @@ function renderLayers(){
   });
 }
 const meterData=new Float32Array(1024);
+const lampT={inClip:-1e9,outClip:-1e9,outWarn:-1e9};
+function setLamp(id,cls,txt){const el=$(id);const t=cls==='ok'?'OK':txt;if(el.textContent!==t)el.textContent=t;if(el.className!=='lamp '+cls)el.className='lamp '+cls;}
 const dotEls=[...document.querySelectorAll('#dots .dot')];
 function tick(){
   if(ctx){
-    analyser.getFloatTimeDomainData(meterData);
-    let pk=0;for(let i=0;i<meterData.length;i++){const v=Math.abs(meterData[i]);if(v>pk)pk=v;}
-    $('meterBar').style.width=Math.min(100,pk*100)+'%';
+    const peak=an=>{an.getFloatTimeDomainData(meterData);let pk=0;for(let i=0;i<meterData.length;i++){const v=Math.abs(meterData[i]);if(v>pk)pk=v;}return pk;};
+    const pin=peak(analyser),praw=peak(rawAn),pout=peak(outAn),red=limiter.reduction||0;
+    $('meterBar').style.width=Math.min(100,pin*100)+'%';
+    $('outBar').style.width=Math.min(100,pout*100)+'%';
+    const tnow=performance.now();
+    if(pin>=0.98||praw>=0.98)lampT.inClip=tnow;
+    if(pout>=0.98)lampT.outClip=tnow;
+    if(red<-6)lampT.outWarn=tnow;
+    setLamp('inLamp',tnow-lampT.inClip<2000?'clip':'ok',praw>=0.98?'iRig zu laut':'ZU LAUT');
+    setLamp('outLamp',tnow-lampT.outClip<2000?'clip':tnow-lampT.outWarn<1500?'warn':'ok',tnow-lampT.outClip<2000?'ZU LAUT':'BEGRENZT');
     const f=nowF()-outLatF();
     const n=nowF();
     let lab=stateNames[state],cls=state;
@@ -901,7 +1122,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
   }).catch(e=>console.warn('Service Worker',e));
 }
 
-buildBeatUI();applyCfg();renderMap();renderLayers();loadUserLoops();updateDrumUI();requestAnimationFrame(tick);
+buildBeatUI();initSaveUI();applyCfg();renderMap();renderLayers();loadUserLoops();updateDrumUI();requestAnimationFrame(tick);
 </script>
 </body>
 </html>
