@@ -2,23 +2,32 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BlueBoard Looper v3</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Looper">
+<meta name="theme-color" content="#111418">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>BlueBoard Looper 4.0</title>
 <style>
 :root{--bg:#111418;--card:#1b2027;--line:#2c333d;--txt:#e8ecf1;--dim:#8b95a3;--rec:#e5484d;--dub:#f5a524;--play:#30a46c;--stop:#5b6573;--acc:#3e8ef7}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:14px;max-width:980px;margin:auto}
-header{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}
-h1{font-size:22px;margin:0}h2{font-size:16px;margin:0 0 8px}
-#ver{color:var(--dim)}
+body{margin:0 auto;background:var(--bg);color:var(--txt);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;max-width:980px;
+ padding:calc(14px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left))}
+header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+h1{font-size:22px;margin:0}h2{font-size:16px;margin:0 0 8px}h3{font-size:15px;margin:14px 0 6px}
+#ver{color:var(--dim)}#helpBtn{margin-left:auto;font-weight:700;width:40px}
+#updBar{display:none;background:var(--play);color:#fff;border-radius:10px;padding:10px 14px;margin-bottom:12px;cursor:pointer;font-weight:600}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:10px}
 label{display:flex;flex-direction:column;gap:4px;color:var(--dim);font-size:13px}
 label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--txt)}
 select,input[type=number]{background:#0f1216;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px}
 button{background:#2a313b;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:14px;cursor:pointer}
-button:hover{border-color:var(--acc)}
-#startBtn{background:var(--acc);border:none;font-weight:600;padding:10px 16px}
+button:hover{border-color:var(--acc)}button:disabled{opacity:.4;cursor:default}
+.primary{background:var(--acc);border:none;font-weight:600;padding:10px 16px}
 .small{font-size:12px;color:var(--dim)}
 .meter{height:8px;background:#0f1216;border-radius:4px;overflow:hidden;margin-top:12px}
 #meterBar{height:100%;width:0;background:linear-gradient(90deg,var(--play),var(--dub) 75%,var(--rec))}
@@ -26,13 +35,13 @@ button:hover{border-color:var(--acc)}
 .state{font-size:44px;font-weight:800;letter-spacing:2px;text-align:center;padding:6px;border-radius:10px}
 .state.empty{color:var(--dim)}.state.rec{color:#fff;background:var(--rec)}.state.dub{color:#111;background:var(--dub)}
 .state.play{color:#fff;background:var(--play)}.state.stopped{color:#fff;background:var(--stop)}
-.row{display:flex;justify-content:space-between;gap:10px;margin-top:8px;flex-wrap:wrap}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
 .bar{height:14px;background:#0f1216;border-radius:7px;overflow:hidden;margin-top:8px}
 #pos{height:100%;width:0;background:var(--acc)}
 #msg{min-height:20px;margin-top:8px;text-align:center;color:var(--dub)}
 .pedals{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
 @media(max-width:640px){.pedals{grid-template-columns:repeat(2,1fr)}}
-.pedal{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px;text-align:center;cursor:pointer;user-select:none;transition:transform .05s}
+.pedal{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px;text-align:center;cursor:pointer;user-select:none;-webkit-user-select:none;transition:transform .05s}
 .pedal:active,.pedal.hit{transform:scale(.97);border-color:var(--acc)}
 .pedal .key{font-size:34px;font-weight:800}
 .pedal .fn{font-size:14px;min-height:38px}
@@ -40,14 +49,50 @@ button:hover{border-color:var(--acc)}
 .pedal button.learning{background:var(--dub);color:#111}
 .layer{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
 .layer.muted span{color:var(--dim);text-decoration:line-through}
-#help li{margin-bottom:4px}
+#drumBtn.on{background:var(--play);border-color:var(--play);color:#fff}
+.dots{display:flex;gap:8px}
+.dot{width:16px;height:16px;border-radius:50%;background:#0f1216;border:1px solid var(--line)}
+.dot.on{background:var(--acc);border-color:var(--acc)}.dot.one.on{background:var(--dub);border-color:var(--dub)}
+#help{display:none}#help.open{display:block}
+#help p,#help li{color:#c9d1db}
+.hide{display:none!important}
 </style>
 </head>
 <body>
-<header><h1>BlueBoard Looper</h1><span id="ver">v3</span></header>
+<header><h1>BlueBoard Looper</h1><span id="ver"></span><button id="helpBtn" aria-label="Hilfe">?</button></header>
+<div id="updBar">Neue Version bereit – hier tippen zum Aktualisieren (aktuelle Loops gehen dabei verloren)</div>
+
+<section class="card" id="help">
+  <h2>Hilfe</h2>
+  <h3>Bedienung</h3>
+  <ul>
+    <li><b>A</b>: 1. Druck Aufnahme, 2. Druck Loop schließen und abspielen, danach Overdub an/aus. Jeder Overdub ist eine eigene Stufe.</li>
+    <li><b>B</b>: letzte Stufe entfernen (während Aufnahme/Overdub: diese verwerfen).</li>
+    <li><b>C</b>: einmal = Stop/Play (Loop und Drums gemeinsam), zweimal schnell = alles löschen.</li>
+    <li><b>D</b>: Drumcomputer an/aus.</li>
+    <li>Ohne Pedal: Tasten 1–4 auf der Tastatur oder Kacheln anklicken.</li>
+    <li><b>Takt-Synchronisation:</b> Laufen die Drums, wird die erste Aufnahme auf ganze Takte gerundet – leicht zu frühes oder zu spätes Treten wird ausgeglichen. Danach ist das Tempo an den Loop gebunden. Startest du die Drums erst zu einem fertigen Loop, passt sich das Tempo der Drums dem Loop an.</li>
+    <li><b>Eigene Drum-Loops:</b> lizenzfreie WAV- oder MP3-Loops (z. B. von looperman.com) mit „Loop-Datei laden“ übernehmen. Steht das Tempo im Dateinamen (z. B. „Funk 95 BPM“), erkennt die App die Taktzahl selbst; sonst unter „Takte“ korrigieren. Die Dateien bleiben nur in diesem Browser auf diesem Gerät.</li>
+    <li>BlueBoard: beim Einschalten <b>C</b> gedrückt halten („MIDI over Bluetooth mode 2“), am Mac über Audio-MIDI-Setup → MIDI-Studio → Bluetooth verbinden. Die Tasten senden CC 20–23 und sind voreingestellt.</li>
+    <li>Klingen Overdubs zu spät, den Latenzausgleich erhöhen; zu früh, verringern.</li>
+  </ul>
+  <h3>Installation</h3>
+  <ul>
+    <li><b>Mac:</b> Adresse in Chrome oder Edge öffnen (Safari kann kein MIDI). Chrome → ⋮ → „Streamen, speichern und teilen“ → „Seite als App installieren“. Danach läuft die App auch offline.</li>
+    <li><b>Windows:</b> Chrome oder Edge → Symbol „App installieren“ in der Adresszeile.</li>
+    <li><b>iPad/iPhone:</b> Die Browser dort können kein MIDI empfangen; die Pedale funktionieren nicht. Der Looper lässt sich nur per Bildschirm bedienen.</li>
+    <li><b>Neue Version:</b> App mit Internet öffnen → grüne Leiste antippen.</li>
+  </ul>
+  <h3>Datenschutz &amp; Haftung</h3>
+  <p>Alle Aufnahmen, Einstellungen und eigenen Drum-Loops bleiben auf diesem Gerät im Browser; es wird nichts hochgeladen. Die Seite wird bei GitHub (GitHub Pages) bereitgestellt; GitHub verarbeitet beim Aufruf technische Daten wie die IP-Adresse.</p>
+  <p>Die App wird ohne Gewähr bereitgestellt. Nutzung auf eigene Verantwortung; für Schäden an Geräten, Gehör oder Daten wird keine Haftung übernommen. Lautstärke vorsichtig einstellen.</p>
+  <h3>Über diese App</h3>
+  <p>Private, kostenlose App ohne Werbung. Kontakt und Rückmeldungen: <a id="kontakt" style="color:var(--acc)"></a></p>
+  <p class="small">Version <span id="ver2"></span></p>
+</section>
 
 <section class="card">
-  <button id="startBtn">▶ Audio starten</button>
+  <button id="startBtn" class="primary">▶ Audio starten</button>
   <span id="audioInfo" class="small" style="margin-left:10px">Audio aus</span>
   <div class="grid">
     <label>Eingang (Audio-Interface)<select id="inSel"></select></label>
@@ -73,8 +118,24 @@ button:hover{border-color:var(--acc)}
 <section class="pedals">
   <div class="pedal" data-k="A"><div class="key">A</div><div class="fn">Aufnahme → Play → Overdub</div><div class="map" id="mapA"></div><button class="learn" data-k="A">MIDI lernen</button></div>
   <div class="pedal" data-k="B"><div class="key">B</div><div class="fn">Letzte Stufe rückgängig</div><div class="map" id="mapB"></div><button class="learn" data-k="B">MIDI lernen</button></div>
-  <div class="pedal" data-k="C"><div class="key">C</div><div class="fn">Play / Stop</div><div class="map" id="mapC"></div><button class="learn" data-k="C">MIDI lernen</button></div>
-  <div class="pedal" data-k="D"><div class="key">D</div><div class="fn">Alles löschen (2× drücken)</div><div class="map" id="mapD"></div><button class="learn" data-k="D">MIDI lernen</button></div>
+  <div class="pedal" data-k="C"><div class="key">C</div><div class="fn">Stop / Play<br>2× = alles löschen</div><div class="map" id="mapC"></div><button class="learn" data-k="C">MIDI lernen</button></div>
+  <div class="pedal" data-k="D"><div class="key">D</div><div class="fn">Drums an / aus</div><div class="map" id="mapD"></div><button class="learn" data-k="D">MIDI lernen</button></div>
+</section>
+
+<section class="card">
+  <div class="row" style="margin-top:0"><h2 style="margin:0">Drumcomputer</h2><div class="dots" id="dots"><div class="dot one"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div><button id="drumBtn">Drums starten</button></div>
+  <div class="grid">
+    <label>Beat<select id="patSel"></select></label>
+    <label id="bpmWrap">Tempo (BPM) <span id="bpmT"></span><input type="range" id="bpmR" min="40" max="240" step="1"></label>
+    <label id="barsWrap" class="hide">Takte in der Loop-Datei<select id="barsSel"><option>1</option><option>2</option><option>4</option><option>8</option><option>16</option></select></label>
+    <label>Drum-Lautstärke <input type="range" id="drumVolR" min="0" max="2" step="0.05"></label>
+  </div>
+  <div class="row">
+    <span><button id="tapBtn">Tap</button> <button id="bpmMinus">−1</button> <button id="bpmPlus">+1</button></span>
+    <span><label class="primary" style="display:inline-block;cursor:pointer;color:#fff;border-radius:8px;padding:8px 12px">Loop-Datei laden<input type="file" id="fileIn" accept="audio/*,.wav,.mp3,.m4a,.aif,.aiff" class="hide"></label>
+    <button id="delLoopBtn" class="hide">Loop-Datei entfernen</button></span>
+  </div>
+  <div id="drumInfo" class="small" style="margin-top:8px"></div>
 </section>
 
 <section class="card">
@@ -83,30 +144,25 @@ button:hover{border-color:var(--acc)}
   <div class="row"><button id="redoBtn">↻ Stufe wiederherstellen</button><button id="clearBtn">Alles löschen</button></div>
 </section>
 
-<section class="card small" id="help">
-  <h2>Kurzanleitung</h2>
-  <ul>
-    <li>Gitarre/Mikro ins Audio-Interface, Kopfhörer/Amp an den Ausgang des Interfaces. Die App nimmt das Eingangssignal auf und gibt die Loops über den Ausgang wieder aus.</li>
-    <li>Das BlueBoard per Bluetooth koppeln (Mac: Audio-MIDI-Setup → MIDI-Studio → Bluetooth-Symbol), dann bei jeder Taste auf „MIDI lernen“ klicken und den Fußschalter treten.</li>
-    <li><b>A</b>: 1. Druck Aufnahme, 2. Druck Loop schließen und abspielen, danach Overdub an/aus. Jeder Overdub wird eine eigene Stufe.</li>
-    <li><b>B</b>: letzte Stufe entfernen (während Aufnahme/Overdub: diese verwerfen). <b>C</b>: Play/Stop. <b>D</b>: zweimal innerhalb von 2 s drücken, um alles zu löschen.</li>
-    <li>Ohne Pedal: Tasten 1–4 auf der Tastatur oder auf die Kacheln klicken.</li>
-    <li>Klingen Overdubs zu spät, den Latenzausgleich erhöhen; zu früh, verringern.</li>
-  </ul>
-</section>
-
 <script>
 "use strict";
+const VERSION='4.0';
+const KONTAKT_URL='https://github.com/app-laden';
 const $=id=>document.getElementById(id);
+$('ver').textContent=VERSION;$('ver2').textContent=VERSION;
+$('kontakt').textContent='github.com/app-laden';$('kontakt').href=KONTAKT_URL;
+
 const store={
   get(k,d){try{const v=localStorage.getItem('bbl_'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},
   set(k,v){try{localStorage.setItem('bbl_'+k,JSON.stringify(v))}catch(e){}}
 };
-let cfg=Object.assign({latMs:null,ccAny:false,monitor:false,inGain:1,loopVol:0.9,chan:0,inDev:'',outDev:''},store.get('cfg',{}));
-let map={A:'c0:20',B:'c0:21',C:'c0:22',D:'c0:23'};{const m=store.get('map',{});for(const k in map)if(m[k])map[k]=m[k];}
+let cfg=Object.assign({latMs:null,ccAny:false,monitor:false,inGain:1,loopVol:0.9,chan:0,inDev:'',outDev:'',
+  drumVol:0.8,bpm:100,pattern:'p:0'},store.get('cfg',{}));
+let map={A:'c0:20',B:'c0:21',C:'c0:22',D:'c0:23'};
+{const m=store.get('map',{});for(const k in map)if(m[k])map[k]=m[k];}
 const saveCfg=()=>store.set('cfg',cfg);
 
-// ---------- Aufnahme-Worklet ----------
+// ================= Aufnahme-Worklet =================
 const WORKLET=`class Cap extends AudioWorkletProcessor{
 constructor(){super();this.ch=0;this.b=new Float32Array(1024);this.n=0;this.f=0;
 this.port.onmessage=e=>{if(e.data&&'ch' in e.data)this.ch=e.data.ch;};}
@@ -121,32 +177,33 @@ if(this.n>=this.b.length){const out=this.b;this.port.postMessage({f:this.f,d:out
 return true;}}
 registerProcessor('cap',Cap);`;
 
-// ---------- Audio ----------
-let ctx=null,sr=48000,stream=null,src=null,inGain,monGain,loopBus,cap,analyser,limiter;
+// ================= Audio-Grundlagen =================
+let ctx=null,sr=48000,stream=null,src=null,inGain,monGain,loopBus,drumBus,cap,analyser,limiter,noiseBuf;
 let state='empty';      // empty | rec | play | dub | stopped
-let L=0;                // Looplänge in Samples
-let anchor=0;           // Sample-Zeitpunkt, an dem die Loop-Position 0 ist
+let L=0,anchor=0;       // Looplänge und Bezugspunkt (Samples)
+let lockBar=null;       // Taktlänge (Samples), an die der Loop gebunden ist
 let layers=[],redo=[],layerId=0;
-let chunks=[],capturing=false,capEnd=0,busy=0,gen=0;
-let recStart=0,dubStart=0;
+let chunks=[],capEnd=0,busy=0,gen=0,recStart=0,dubStart=0;
 
 const nowF=()=>Math.round(ctx.currentTime*sr);
 const latF=()=>Math.round((cfg.latMs||0)/1000*sr);
+const outLatF=()=>Math.round((ctx.outputLatency||0)*sr);
 
 async function startAudio(){
   if(ctx){if(ctx.state!=='running')await ctx.resume();return;}
   try{
     ctx=new (window.AudioContext||window.webkitAudioContext)({latencyHint:'interactive'});
     sr=ctx.sampleRate;
-    inGain=ctx.createGain();monGain=ctx.createGain();loopBus=ctx.createGain();
+    inGain=ctx.createGain();monGain=ctx.createGain();loopBus=ctx.createGain();drumBus=ctx.createGain();
     analyser=ctx.createAnalyser();analyser.fftSize=1024;
+    limiter=ctx.createDynamicsCompressor();
+    limiter.threshold.value=-3;limiter.knee.value=0;limiter.ratio.value=20;limiter.attack.value=0.002;limiter.release.value=0.15;
+    loopBus.connect(limiter);drumBus.connect(limiter);limiter.connect(ctx.destination);
     const silent=ctx.createGain();silent.gain.value=0;silent.connect(ctx.destination);
     await makeCapture(silent);
     inGain.connect(analyser);
     inGain.connect(monGain);monGain.connect(ctx.destination);
-    limiter=ctx.createDynamicsCompressor();
-    limiter.threshold.value=-3;limiter.knee.value=0;limiter.ratio.value=20;limiter.attack.value=0.002;limiter.release.value=0.15;
-    loopBus.connect(limiter);limiter.connect(ctx.destination);
+    noiseBuf=ctx.createBuffer(1,sr,sr);{const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;}
     if(cfg.latMs==null){cfg.latMs=Math.round(((ctx.baseLatency||0)+(ctx.outputLatency||0))*1000)+15;saveCfg();}
     applyCfg();
     await openInput(cfg.inDev);
@@ -154,6 +211,8 @@ async function startAudio(){
     if(cfg.outDev&&ctx.setSinkId){try{await ctx.setSinkId(cfg.outDev)}catch(e){}}
     $('startBtn').textContent='Audio läuft';
     $('audioInfo').textContent=`${sr} Hz · Ausgangslatenz ca. ${Math.round(((ctx.baseLatency||0)+(ctx.outputLatency||0))*1000)} ms · Aufnahme: ${capMode}`;
+    await prepareSelectedLoop();
+    updateDrumUI();
   }catch(e){
     flash('Audio konnte nicht gestartet werden: '+e.message);console.error(e);ctx=null;
   }
@@ -215,17 +274,25 @@ function applyCfg(){
   $('latN').value=cfg.latMs==null?'':cfg.latMs;
   $('ccChk').checked=cfg.ccAny;$('monChk').checked=cfg.monitor;
   $('inGainR').value=cfg.inGain;$('loopVolR').value=cfg.loopVol;$('chSel').value=String(cfg.chan);
-  $('loopVolT').textContent=cfg.loopVol>0?'('+(20*Math.log10(cfg.loopVol)>=0?'+':'')+(20*Math.log10(cfg.loopVol)).toFixed(0)+' dB)':'(aus)';
+  $('drumVolR').value=cfg.drumVol;
+  const db=v=>v>0?'('+(20*Math.log10(v)>=0?'+':'')+(20*Math.log10(v)).toFixed(0)+' dB)':'(aus)';
+  $('loopVolT').textContent=db(cfg.loopVol);
   if(!ctx)return;
-  inGain.gain.value=cfg.inGain;loopBus.gain.value=cfg.loopVol;
+  inGain.gain.value=cfg.inGain;loopBus.gain.value=cfg.loopVol;drumBus.gain.value=cfg.drumVol;
   monGain.gain.value=cfg.monitor?1:0;
   capSetCh(cfg.chan);
 }
 
-// ---------- Aufnahmepuffer ----------
+// ================= Aufnahmepuffer (läuft immer mit) =================
 function onChunk(e){
   const {f,d}=e.data;capEnd=f+d.length;
-  if(capturing)chunks.push({f,d});
+  chunks.push({f,d});
+  if(busy===0&&chunks.length>64){
+    const act=state==='rec'?recStart:state==='dub'?dubStart:capEnd;
+    const keep=Math.min(act,capEnd)-12*sr;
+    let i=0;while(i<chunks.length&&chunks[i].f+chunks[i].d.length<keep)i++;
+    if(i)chunks.splice(0,i);
+  }
 }
 function extract(from,to){
   const out=new Float32Array(Math.max(0,to-from));
@@ -237,10 +304,9 @@ function extract(from,to){
   return out;
 }
 function waitFrame(frame,cb){const t=()=>{if(capEnd>=frame)cb();else setTimeout(t,15);};t();}
-function release(){if(state!=='rec'&&state!=='dub'&&busy===0){capturing=false;chunks=[];}}
 function fade(buf,n){n=Math.min(n,buf.length>>1);for(let i=0;i<n;i++){const g=i/n;buf[i]*=g;buf[buf.length-1-i]*=g;}}
 
-// ---------- Layer ----------
+// ================= Stufen =================
 function addLayer(data){
   const buf=ctx.createBuffer(1,L,sr);buf.copyToChannel(data,0);
   const g=ctx.createGain();g.connect(loopBus);
@@ -264,37 +330,44 @@ function startPlay(){
   layers.forEach(startSource);setState('play');
 }
 
-// ---------- Ablauf ----------
-function startRec(){capturing=true;chunks=[];recStart=nowF();setState('rec');}
+// ================= Looper-Ablauf =================
+function startRec(){recStart=nowF();setState('rec');}
 function endRec(){
-  const e=nowF(),s=recStart,len=e-s;
-  if(len<sr*0.25){setState('empty');release();flash('Zu kurz – verworfen');return;}
-  L=len;anchor=e;setState('play');
+  const e=nowF();let s=recStart,end=e;
+  if(drum.on){
+    const bar=curBar(),o=drum.origin;
+    s=Math.round(o+Math.round((recStart-o)/bar)*bar);
+    end=Math.round(o+Math.round((e-o)/bar)*bar);
+    if(end-s<bar*0.5)end=Math.round(s+bar);
+    lockBar=bar;
+  }else if(e-s<sr*0.25){setState('empty');flash('Zu kurz – verworfen');return;}
+  L=end-s;anchor=end;setState('play');
   const lat=latF(),g=gen;busy++;
-  waitFrame(e+lat,()=>{
+  waitFrame(end+lat,()=>{
     if(g!==gen)return;
-    const data=extract(s+lat,e+lat);fade(data,Math.round(sr*0.004));
-    addLayer(data);busy--;release();
+    const data=extract(s+lat,end+lat);fade(data,Math.round(sr*0.004));
+    busy--;addLayer(data);
   });
+  updateDrumUI();
 }
-function startDub(){if(busy===0)chunks=[];capturing=true;dubStart=nowF();setState('dub');}
+function startDub(){dubStart=nowF();setState('dub');}
 function endDub(next){
   const e=nowF(),s=dubStart,anc=anchor,lat=latF(),g=gen;
   setState(next);busy++;
   waitFrame(e+lat,()=>{
     if(g!==gen)return;
     const raw=extract(s+lat,e+lat);busy--;
-    if(raw.length<sr*0.05){release();return;}
+    if(raw.length<sr*0.05)return;
     fade(raw,Math.round(sr*0.004));
     const out=new Float32Array(L);
     const p0=((s-anc)%L+L)%L;
     for(let i=0;i<raw.length;i++)out[(p0+i)%L]+=raw[i];
-    addLayer(out);release();
+    addLayer(out);
   });
 }
 function undo(){
-  if(state==='rec'){setState('empty');release();flash('Aufnahme verworfen');return;}
-  if(state==='dub'){setState('play');release();flash('Overdub verworfen');return;}
+  if(state==='rec'){setState('empty');flash('Aufnahme verworfen');return;}
+  if(state==='dub'){setState('play');flash('Overdub verworfen');return;}
   if(!layers.length){flash('Keine Stufe zum Entfernen');return;}
   const l=layers.pop();stopSource(l);redo.push(l);renderLayers();flash('Stufe '+(layers.length+1)+' entfernt');
 }
@@ -305,28 +378,40 @@ function doRedo(){
   renderLayers();
 }
 function clearAll(){
-  stopAll();layers.forEach(l=>l.gain.disconnect());
-  layers=[];redo=[];L=0;gen++;busy=0;capturing=false;chunks=[];
-  setState('empty');renderLayers();flash('Alles gelöscht');
+  stopAll();layers.forEach(l=>l.gain.disconnect());redo.forEach(l=>l.gain.disconnect());
+  layers=[];redo=[];L=0;lockBar=null;gen++;busy=0;drumsPaused=false;
+  setState('empty');renderLayers();updateDrumUI();flash('Alles gelöscht');
 }
 
-let clearArm=0;
+// ================= Pedale =================
+let lastC=0,cRestoreDrums=false,drumsPaused=false;
+function pressC(){
+  const t=performance.now();
+  if(t-lastC<450){
+    lastC=0;const restore=cRestoreDrums;
+    clearAll();
+    if(restore&&!drum.on)startDrums();
+    return;
+  }
+  lastC=t;cRestoreDrums=drum.on||drumsPaused;
+  switch(state){
+    case 'rec':endRec();break;
+    case 'play':stopAll();if(drum.on){stopDrums();drumsPaused=true;}setState('stopped');break;
+    case 'dub':endDub('stopped');stopAll();if(drum.on){stopDrums();drumsPaused=true;}break;
+    case 'stopped':startPlay();if(drumsPaused){drumsPaused=false;startDrums();}break;
+    case 'empty':if(drum.on){stopDrums();flash('Drums gestoppt');}break;
+  }
+}
 const actions={
   A(){switch(state){
     case 'empty':startRec();break;
     case 'rec':endRec();break;
     case 'play':startDub();break;
     case 'dub':endDub('play');break;
-    case 'stopped':startPlay();break;}},
+    case 'stopped':startPlay();if(drumsPaused){drumsPaused=false;startDrums();}break;}},
   B(){undo();},
-  C(){switch(state){
-    case 'rec':endRec();break;
-    case 'play':stopAll();setState('stopped');break;
-    case 'dub':endDub('stopped');stopAll();break;
-    case 'stopped':startPlay();break;}},
-  D(){const t=performance.now();
-    if(t-clearArm<2000){clearArm=0;clearAll();}
-    else{clearArm=t;flash('Nochmal D drücken zum Löschen');}}
+  C(){pressC();},
+  D(){drumsPaused=false;if(drum.on)stopDrums();else startDrums();}
 };
 async function trigger(k){
   const el=document.querySelector(`.pedal[data-k="${k}"]`);
@@ -336,11 +421,240 @@ async function trigger(k){
   actions[k]();
 }
 
-// ---------- Anzeige ----------
+// ================= Drumcomputer =================
+// x = normal, X = Betonung, g = leise (Ghost Note)
+// k Bassdrum, s Snare, h Hi-Hat zu, o Hi-Hat offen, r Rimshot, c Clap
+const PATTERNS=[
+ {n:'Rock',s:16,k:'X.....x.X.x.....',sn:'....X.......X...',h:'X.x.x.x.X.x.x.x.'},
+ {n:'Rock (16tel Hi-Hat)',s:16,k:'X......xX.x.....',sn:'....X.......X...',h:'XxxxXxxxXxxxXxxx'},
+ {n:'Pop',s:16,k:'X.....x...X.....',sn:'....X.......X...',h:'x.x.x.x.x.x.x.x.',c:'............x...'},
+ {n:'Funk',s:16,k:'X.x....x..X..x..',sn:'....X..g.g..X..g',h:'XxxxXxxxXxxxXxx.',o:'...............x'},
+ {n:'Disco',s:16,k:'X...X...X...X...',sn:'....X.......X...',h:'x...x...x...x...',o:'..x...x...x...x.'},
+ {n:'Motown',s:16,k:'X.x...x.X.x...x.',sn:'....X.......X...',h:'x.x.x.x.x.x.x.x.',c:'....x.......x...'},
+ {n:'Hip-Hop (Boom Bap)',s:16,sw:0.18,k:'X......x..X..x..',sn:'....X.......X...',h:'x.x.x.x.x.x.x.x.'},
+ {n:'Halftime',s:16,k:'X.........x.....',sn:'........X.......',h:'x.x.x.x.x.x.x.x.'},
+ {n:'Reggae One Drop',s:16,sw:0.15,k:'........X.......',r:'........x.......',h:'x.x.x.x.x.x.x.x.'},
+ {n:'Bossa Nova',s:16,k:'X..xX..xX..xX..x',r:'x..x..x...x..x..',h:'x.x.x.x.x.x.x.x.'},
+ {n:'Shuffle',s:12,k:'X.....X.....',sn:'...X.....X..',h:'X.xX.xX.xX.x'},
+ {n:'Punk (schnell)',s:16,k:'X...X...X...X...',sn:'..x...x...x...x.',h:'x.x.x.x.x.x.x.x.'},
+ {n:'Metronom',s:4,r:'Xxxx'}
+];
+const VEL={X:1,x:0.75,g:0.3};
+let drum={on:false,origin:0,k:0,timer:null,src:null,kind:'synth'};
+let userLoops=[],decoded={};
+
+function selPattern(){
+  const v=cfg.pattern||'p:0';
+  if(v.startsWith('u:')){const id=Number(v.slice(2));const u=userLoops.find(x=>x.id===id);if(u)return{kind:'file',u};}
+  const i=Number(v.slice(2))||0;return{kind:'synth',p:PATTERNS[Math.min(i,PATTERNS.length-1)]};
+}
+function fileBar(u){const b=decoded[u.id];return b?b.length/u.bars:null;}
+function curBar(){
+  if(lockBar)return lockBar;
+  const s=selPattern();
+  if(s.kind==='file'){const fb=fileBar(s.u);if(fb)return fb;}
+  return 240*sr/cfg.bpm;
+}
+function curBpm(){return ctx?240*sr/curBar():(()=>{const s=selPattern();
+  if(s.kind==='file'&&decoded[s.u.id])return 240*s.u.bars/decoded[s.u.id].duration;return cfg.bpm;})();}
+
+function startDrums(){
+  if(!ctx){flash('Bitte zuerst „Audio starten“ klicken');return;}
+  const s=selPattern();
+  if(s.kind==='file'&&!decoded[s.u.id]){flash('Loop-Datei wird noch geladen …');prepareSelectedLoop();return;}
+  if(L>0&&!lockBar){
+    let bar=s.kind==='file'?fileBar(s.u):240*sr/cfg.bpm;
+    const n=Math.max(1,Math.round(L/bar));
+    lockBar=L/n;
+    flash('Tempo an Loop angepasst: '+Math.round(240*sr/lockBar)+' BPM');
+  }
+  drum.origin=L>0?anchor:nowF()+Math.round(0.08*sr);
+  drum.on=true;drum.kind=s.kind;
+  if(s.kind==='file')startFileDrums(s.u);else startSynthDrums();
+  updateDrumUI();
+}
+function stopDrums(){
+  drum.on=false;
+  if(drum.timer){clearInterval(drum.timer);drum.timer=null;}
+  if(drum.src){try{drum.src.stop()}catch(e){}drum.src.disconnect();drum.src=null;}
+  updateDrumUI();
+}
+function restartDrums(){if(drum.on){const o=drum.origin;stopDrums();drum.on=true;drum.origin=o;
+  const s=selPattern();drum.kind=s.kind;if(s.kind==='file'){if(decoded[s.u.id])startFileDrums(s.u);else{stopDrums();prepareSelectedLoop();}}else startSynthDrums();updateDrumUI();}}
+
+function startFileDrums(u){
+  const buf=decoded[u.id],bar=curBar(),nat=buf.length/u.bars,rate=nat/bar;
+  const s=ctx.createBufferSource();s.buffer=buf;s.loop=true;s.playbackRate.value=rate;s.connect(drumBus);
+  const t0=Math.max(ctx.currentTime+0.03,drum.origin/sr);
+  const total=bar*u.bars;
+  const ph=(((t0*sr-drum.origin)%total)+total)%total;
+  s.start(t0,(ph*rate)/sr);drum.src=s;
+}
+function startSynthDrums(){
+  const p=selPattern().p,step=curBar()/p.s;
+  drum.k=Math.max(0,Math.ceil((nowF()+0.03*sr-drum.origin)/step));
+  drum.timer=setInterval(schedSynth,25);schedSynth();
+}
+function schedSynth(){
+  if(!drum.on||drum.kind!=='synth')return;
+  const p=selPattern().p;if(!p)return;
+  const step=curBar()/p.s,horizon=(ctx.currentTime+0.12)*sr,now=nowF();
+  for(let guard=0;guard<64;guard++){
+    let f=drum.origin+drum.k*step;
+    if(p.sw&&drum.k%2===1)f+=p.sw*step;
+    if(f>=horizon)break;
+    if(f>=now-0.005*sr)playStep(p,drum.k%p.s,f/sr);
+    drum.k++;
+  }
+}
+function playStep(p,i,t){
+  const v=c=>VEL[c]||0;
+  if(p.k&&v(p.k[i]))kick(t,v(p.k[i]));
+  if(p.sn&&v(p.sn[i]))snare(t,v(p.sn[i]));
+  if(p.h&&v(p.h[i]))hat(t,v(p.h[i]),0.05);
+  if(p.o&&v(p.o[i]))hat(t,v(p.o[i]),0.35);
+  if(p.r&&v(p.r[i]))rim(t,v(p.r[i]));
+  if(p.c&&v(p.c[i]))clap(t,v(p.c[i]));
+}
+function env(t,peak,dur){const g=ctx.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(Math.max(peak,0.0002),t+0.002);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);g.connect(drumBus);return g;}
+function noise(t,dur,dest){const n=ctx.createBufferSource();n.buffer=noiseBuf;n.connect(dest);n.start(t,Math.random()*0.5);n.stop(t+dur+0.02);}
+function kick(t,v){
+  const o=ctx.createOscillator(),g=env(t,v*1.0,0.42);
+  o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(45,t+0.12);
+  o.connect(g);o.start(t);o.stop(t+0.45);
+  const cg=env(t,v*0.25,0.012),hp=ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=2500;hp.connect(cg);noise(t,0.012,hp);
+}
+function snare(t,v){
+  const g=env(t,v*0.55,0.2),hp=ctx.createBiquadFilter();hp.type='highpass';hp.frequency.value=1200;hp.connect(g);noise(t,0.2,hp);
+  const o=ctx.createOscillator(),og=env(t,v*0.35,0.11);o.type='triangle';o.frequency.setValueAtTime(200,t);o.frequency.exponentialRampToValueAtTime(160,t+0.1);o.connect(og);o.start(t);o.stop(t+0.13);
+}
+function hat(t,v,dur){
+  const g=env(t,v*0.22,dur),hp=ctx.createBiquadFilter(),bp=ctx.createBiquadFilter();
+  hp.type='highpass';hp.frequency.value=7000;bp.type='bandpass';bp.frequency.value=10000;bp.Q.value=0.8;
+  hp.connect(bp);bp.connect(g);noise(t,dur,hp);
+}
+function rim(t,v){
+  const o=ctx.createOscillator(),bp=ctx.createBiquadFilter(),g=env(t,v*0.45,0.035);
+  o.type='square';o.frequency.value=1700;bp.type='bandpass';bp.frequency.value=1700;bp.Q.value=6;
+  o.connect(bp);bp.connect(g);o.start(t);o.stop(t+0.05);
+}
+function clap(t,v){
+  const bp=ctx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=1400;bp.Q.value=1;
+  [0,0.011,0.022].forEach(d=>{const g=env(t+d,v*0.4,d===0.022?0.16:0.012);bp.connect(g);});
+  noise(t,0.2,bp);
+}
+
+// ---------- eigene Loop-Dateien (IndexedDB, nur auf diesem Gerät) ----------
+const DB={
+  db:null,
+  open(){return new Promise((res,rej)=>{if(!window.indexedDB)return rej(new Error('kein IndexedDB'));
+    const r=indexedDB.open('bbl-loops',1);
+    r.onupgradeneeded=()=>r.result.createObjectStore('loops',{keyPath:'id',autoIncrement:true});
+    r.onsuccess=()=>{DB.db=r.result;res();};r.onerror=()=>rej(r.error);});},
+  tx(mode){return DB.db.transaction('loops',mode).objectStore('loops');},
+  all(){return new Promise((res,rej)=>{const q=DB.tx('readonly').getAll();q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);});},
+  put(o){return new Promise((res,rej)=>{const q=DB.tx('readwrite').put(o);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);});},
+  del(id){return new Promise((res,rej)=>{const q=DB.tx('readwrite').delete(id);q.onsuccess=()=>res();q.onerror=()=>rej(q.error);});}
+};
+function guessBars(name,dur){
+  const m=/(\d{2,3})\s*-?\s*bpm/i.exec(name)||/(?:^|[^\d])(\d{2,3})(?:[^\d]|$)/.exec(name);
+  if(m){const bpm=Number(m[1]);if(bpm>=50&&bpm<=220){const b=Math.max(1,Math.round(dur*bpm/240));return b;}}
+  let best=1,bd=1e9;
+  for(const b of [1,2,4,8,16]){const bpm=240*b/dur;if(bpm<55||bpm>190)continue;const d=Math.abs(bpm-100);if(d<bd){bd=d;best=b;}}
+  return best;
+}
+async function loadUserLoops(){
+  try{await DB.open();userLoops=await DB.all();}catch(e){console.warn(e);userLoops=[];}
+  fillPatterns();
+}
+async function decodeLoop(u){
+  if(decoded[u.id]||!ctx)return decoded[u.id];
+  try{
+    const buf=await ctx.decodeAudioData(u.data.slice(0));
+    decoded[u.id]=buf;
+    if(!u.bars){u.bars=guessBars(u.name,buf.duration);try{await DB.put(u)}catch(e){}}
+    return buf;
+  }catch(e){flash('Datei konnte nicht gelesen werden: '+u.name);return null;}
+}
+async function prepareSelectedLoop(){const s=selPattern();if(s.kind==='file'){await decodeLoop(s.u);updateDrumUI();}}
+function fillPatterns(){
+  const sel=$('patSel');sel.innerHTML='';
+  const g1=document.createElement('optgroup');g1.label='Eingebaute Beats';
+  PATTERNS.forEach((p,i)=>{const o=document.createElement('option');o.value='p:'+i;o.textContent=p.n;g1.appendChild(o);});
+  sel.appendChild(g1);
+  if(userLoops.length){
+    const g2=document.createElement('optgroup');g2.label='Eigene Loops';
+    userLoops.forEach(u=>{const o=document.createElement('option');o.value='u:'+u.id;o.textContent=u.name;g2.appendChild(o);});
+    sel.appendChild(g2);
+  }
+  if(![...sel.options].some(o=>o.value===cfg.pattern))cfg.pattern='p:0';
+  sel.value=cfg.pattern;updateDrumUI();
+}
+async function addLoopFile(file){
+  if(!file)return;
+  const data=await file.arrayBuffer();
+  const name=file.name.replace(/\.[^.]+$/,'');
+  const u={name,data,bars:null};
+  try{u.id=await DB.put(u);}catch(e){flash('Speichern nicht möglich – Loop nur bis zum Neuladen verfügbar');u.id=Date.now();}
+  userLoops.push(u);
+  cfg.pattern='u:'+u.id;saveCfg();
+  fillPatterns();
+  if(ctx){await decodeLoop(u);if(drum.on)restartDrums();}
+  updateDrumUI();
+  flash('Loop „'+name+'“ übernommen'+(ctx?'':' – wird nach „Audio starten“ geladen'));
+}
+async function deleteSelectedLoop(){
+  const s=selPattern();if(s.kind!=='file')return;
+  if(!confirmDel()){return;}
+  if(drum.on)stopDrums();
+  try{await DB.del(s.u.id);}catch(e){}
+  userLoops=userLoops.filter(x=>x.id!==s.u.id);delete decoded[s.u.id];
+  cfg.pattern='p:0';saveCfg();fillPatterns();flash('Loop-Datei entfernt');
+}
+let delArm=0;
+function confirmDel(){const t=performance.now();if(t-delArm<3000){delArm=0;return true;}delArm=t;flash('Nochmal klicken zum Entfernen');return false;}
+
+function updateDrumUI(){
+  const s=selPattern(),isFile=s.kind==='file';
+  $('drumBtn').textContent=drum.on?'Drums stoppen':'Drums starten';
+  $('drumBtn').classList.toggle('on',drum.on);
+  $('barsWrap').classList.toggle('hide',!isFile);
+  $('delLoopBtn').classList.toggle('hide',!isFile);
+  if(isFile)$('barsSel').value=String(s.u.bars||4);
+  const locked=!!lockBar;
+  const bpm=Math.round(curBpm()*10)/10;
+  $('bpmT').textContent='('+bpm+')';
+  $('bpmR').value=Math.round(isFile||locked?bpm:cfg.bpm);
+  const dis=locked||isFile;
+  $('bpmR').disabled=dis;$('tapBtn').disabled=dis;$('bpmMinus').disabled=dis;$('bpmPlus').disabled=dis;
+  let info='';
+  if(locked)info='Tempo an den Loop gebunden ('+bpm+' BPM). Zum Ändern alles löschen.';
+  else if(isFile)info=decoded[s.u.id]?'Tempo aus der Loop-Datei: '+bpm+' BPM bei '+s.u.bars+' Takt(en). Stimmt das nicht, „Takte“ ändern.':'Loop-Datei wird nach „Audio starten“ geladen.';
+  else info='Laufen die Drums, wird die erste Aufnahme auf ganze Takte gerundet.';
+  $('drumInfo').textContent=info;
+}
+function setBpm(v){
+  v=Math.max(40,Math.min(240,Math.round(v)));
+  if(drum.on&&ctx&&!lockBar&&selPattern().kind==='synth'){
+    const oldBar=curBar(),now=nowF();
+    const frac=((((now-drum.origin)/oldBar)%1)+1)%1;
+    cfg.bpm=v;const nb=curBar();
+    drum.origin=now-frac*nb;
+    const p=selPattern().p;drum.k=Math.ceil(((ctx.currentTime+0.12)*sr-drum.origin)/(nb/p.s));
+  }else cfg.bpm=v;
+  saveCfg();updateDrumUI();
+}
+let taps=[];
+function tap(){
+  const t=performance.now();taps=taps.filter(x=>t-x<3000);taps.push(t);
+  if(taps.length>=2){const d=(taps[taps.length-1]-taps[0])/(taps.length-1);setBpm(60000/d);}
+}
+
+// ================= Anzeige =================
 const stateNames={empty:'LEER',rec:'AUFNAHME',play:'WIEDERGABE',dub:'OVERDUB',stopped:'GESTOPPT'};
 function setState(s){state=s;const el=$('stateTxt');el.className='state '+s;el.textContent=stateNames[s];renderLayers();}
 let msgT=0;
-function flash(t){$('msg').textContent=t;clearTimeout(msgT);msgT=setTimeout(()=>$('msg').textContent='',2500);}
+function flash(t){$('msg').textContent=t;clearTimeout(msgT);msgT=setTimeout(()=>$('msg').textContent='',3000);}
 function renderLayers(){
   $('layerInfo').textContent='Stufen: '+layers.length+(redo.length?` (+${redo.length} wiederherstellbar)`:'');
   const box=$('layers');box.innerHTML='';
@@ -354,25 +668,28 @@ function renderLayers(){
   });
 }
 const meterData=new Float32Array(1024);
+const dotEls=[...document.querySelectorAll('#dots .dot')];
 function tick(){
   if(ctx){
     analyser.getFloatTimeDomainData(meterData);
     let pk=0;for(let i=0;i<meterData.length;i++){const v=Math.abs(meterData[i]);if(v>pk)pk=v;}
     $('meterBar').style.width=Math.min(100,pk*100)+'%';
+    const f=nowF()-outLatF();
     if(state==='rec'){
       $('len').textContent='Aufnahme: '+((nowF()-recStart)/sr).toFixed(1)+' s';$('pos').style.width='100%';
     }else if(L>0){
-      $('len').textContent='Looplänge: '+(L/sr).toFixed(2)+' s';
-      if(state==='play'||state==='dub'){
-        const f=nowF()-Math.round((ctx.outputLatency||0)*sr);
-        $('pos').style.width=(((f-anchor)%L+L)%L/L*100)+'%';
-      }
+      const bars=lockBar?Math.round(L/lockBar):0;
+      $('len').textContent='Looplänge: '+(L/sr).toFixed(2)+' s'+(bars?' · '+bars+' Takt'+(bars>1?'e':''):'');
+      $('pos').style.width=(state==='play'||state==='dub')?(((f-anchor)%L+L)%L/L*100)+'%':'0';
     }else{$('len').textContent='–';$('pos').style.width='0';}
+    let beat=-1;
+    if(drum.on){const bar=curBar();const ph=(((f-drum.origin)%bar)+bar)%bar;if(f>=drum.origin)beat=Math.floor(ph/bar*4);}
+    dotEls.forEach((d,i)=>d.classList.toggle('on',i===beat));
   }
   requestAnimationFrame(tick);
 }
 
-// ---------- MIDI ----------
+// ================= MIDI =================
 let learning=null,midi=null;
 function sigText(s){
   if(!s)return'nicht zugewiesen';
@@ -412,8 +729,9 @@ if(navigator.requestMIDIAccess){
   $('midiInfo').textContent='Dieser Browser kann kein Web MIDI (z. B. Safari/iPad). Bitte Chrome oder Edge am Mac/PC nutzen. Tastatur 1–4 funktioniert trotzdem.';
 }
 
-// ---------- Bedienelemente ----------
+// ================= Bedienelemente =================
 $('startBtn').onclick=startAudio;
+$('helpBtn').onclick=()=>$('help').classList.toggle('open');
 document.querySelectorAll('.pedal').forEach(p=>p.addEventListener('click',()=>trigger(p.dataset.k)));
 document.querySelectorAll('.learn').forEach(b=>b.addEventListener('click',ev=>{
   ev.stopPropagation();
@@ -428,15 +746,52 @@ $('outSel').onchange=async e=>{cfg.outDev=e.target.value;saveCfg();if(ctx&&ctx.s
 $('chSel').onchange=e=>{cfg.chan=Number(e.target.value);saveCfg();applyCfg();};
 $('inGainR').oninput=e=>{cfg.inGain=Number(e.target.value);saveCfg();applyCfg();};
 $('loopVolR').oninput=e=>{cfg.loopVol=Number(e.target.value);saveCfg();applyCfg();};
+$('drumVolR').oninput=e=>{cfg.drumVol=Number(e.target.value);saveCfg();applyCfg();};
 $('latN').onchange=e=>{cfg.latMs=Math.max(0,Number(e.target.value)||0);saveCfg();};
 $('monChk').onchange=e=>{cfg.monitor=e.target.checked;saveCfg();applyCfg();};
 $('ccChk').onchange=e=>{cfg.ccAny=e.target.checked;saveCfg();};
+$('drumBtn').onclick=()=>trigger('D');
+$('patSel').onchange=async e=>{
+  const wasOn=drum.on,before=selPattern().kind;
+  cfg.pattern=e.target.value;saveCfg();
+  await prepareSelectedLoop();
+  const after=selPattern().kind;
+  if(wasOn){if(before==='synth'&&after==='synth'){const p=selPattern().p;drum.k=Math.ceil(((ctx.currentTime+0.12)*sr-drum.origin)/(curBar()/p.s));}else restartDrums();}
+  updateDrumUI();
+};
+$('bpmR').oninput=e=>setBpm(Number(e.target.value));
+$('bpmMinus').onclick=()=>setBpm(cfg.bpm-1);
+$('bpmPlus').onclick=()=>setBpm(cfg.bpm+1);
+$('tapBtn').onclick=tap;
+$('barsSel').onchange=async e=>{
+  const s=selPattern();if(s.kind!=='file')return;
+  s.u.bars=Number(e.target.value);try{await DB.put(s.u)}catch(err){}
+  if(drum.on&&!lockBar)restartDrums();
+  updateDrumUI();
+};
+$('fileIn').onchange=e=>{addLoopFile(e.target.files[0]);e.target.value='';};
+$('delLoopBtn').onclick=deleteSelectedLoop;
 document.addEventListener('keydown',e=>{
   if(['INPUT','SELECT','TEXTAREA'].includes(document.activeElement.tagName)||e.repeat)return;
   const k={'1':'A','2':'B','3':'C','4':'D'}[e.key];
   if(k){e.preventDefault();trigger(k);}
 });
-applyCfg();renderMap();renderLayers();requestAnimationFrame(tick);
+
+// ================= Offline-Speicher / Updates =================
+if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){
+  let wantReload=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(wantReload)location.reload();});
+  navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(reg=>{
+    const show=()=>{$('updBar').style.display='block';};
+    if(reg.waiting&&navigator.serviceWorker.controller)show();
+    reg.addEventListener('updatefound',()=>{const w=reg.installing;if(!w)return;
+      w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller)show();});});
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')reg.update().catch(()=>{});});
+    $('updBar').onclick=()=>{if(reg.waiting){wantReload=true;reg.waiting.postMessage('skipWaiting');}else location.reload();};
+  }).catch(e=>console.warn('Service Worker',e));
+}
+
+applyCfg();renderMap();renderLayers();loadUserLoops();updateDrumUI();requestAnimationFrame(tick);
 </script>
 </body>
 </html>
