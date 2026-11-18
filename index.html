@@ -10,39 +10,39 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
-<title>BlueBoard Looper 5.0</title>
+<title>BlueBoard Looper 5.1</title>
 <style>
 :root{--bg:#111418;--card:#1b2027;--card2:#151a20;--line:#2c333d;--txt:#e8ecf1;--dim:#8b95a3;--rec:#e5484d;--dub:#f5a524;--play:#30a46c;--stop:#5b6573;--acc:#3e8ef7}
 *{box-sizing:border-box}
 html,body{background:var(--bg)}
-body{margin:0 auto;color:var(--txt);font:14px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;max-width:1500px;
+body{margin:0 auto;color:var(--txt);font:16px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;max-width:1500px;
  padding:calc(10px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left))}
-h2{font-size:15px;margin:0;font-weight:700}h3{font-size:14px;margin:12px 0 6px}
-button{background:#2a313b;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;white-space:nowrap}
+h2{font-size:17px;margin:0;font-weight:700}h3{font-size:16px;margin:12px 0 6px}
+button{background:#2a313b;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:6px 11px;font-size:15px;cursor:pointer;white-space:nowrap}
 button:hover{border-color:var(--acc)}button:disabled{opacity:.4;cursor:default}
 .primary{background:var(--acc);border-color:var(--acc);color:#fff;font-weight:600}
-select,input[type=number],input[type=text]{background:#0f1216;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:5px 6px;font-size:13px;min-width:0}
+select,input[type=number],input[type=text]{background:#0f1216;color:var(--txt);border:1px solid var(--line);border-radius:8px;padding:5px 6px;font-size:15px;min-width:0}
 input[type=range]{min-width:0}
-label{display:flex;flex-direction:column;gap:3px;color:var(--dim);font-size:12px}
-label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--txt);font-size:13px}
-.small{font-size:12px;color:var(--dim)}
+label{display:flex;flex-direction:column;gap:3px;color:var(--dim);font-size:14px}
+label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--txt);font-size:15px}
+.small{font-size:14px;color:var(--dim)}
 .hide{display:none!important}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
 .ch{display:flex;align-items:center;gap:10px;margin-bottom:8px}
 .ch .sp{flex:1}
 /* Kopfzeile */
 .top{display:flex;align-items:center;gap:14px;margin-bottom:10px}
-.top h1{font-size:18px;margin:0;white-space:nowrap}
-#ver{color:var(--dim);font-size:13px}
+.top h1{font-size:20px;margin:0;white-space:nowrap}
+#ver{color:var(--dim);font-size:15px}
 .meters{display:flex;flex-direction:column;gap:4px;flex:0 1 440px;width:440px;margin-left:16px}
 .mrow{display:flex;align-items:center;gap:8px}
-.mlab{width:56px;font-size:11px;color:var(--dim);text-align:right}
+.mlab{width:64px;font-size:13px;color:var(--dim);text-align:right}
 .meter{flex:1 1 auto;min-width:80px;height:9px;background:#262d36;border:1px solid #333b46;border-radius:5px;overflow:hidden}
 #meterBar,#outBar{height:100%;width:0;background:linear-gradient(90deg,var(--play),var(--dub) 75%,var(--rec))}
-.lamp{width:84px;text-align:center;font-size:11px;font-weight:700;border-radius:6px;padding:1px 0;background:#0f1216;color:var(--dim);border:1px solid var(--line)}
+.lamp{width:96px;text-align:center;font-size:13px;font-weight:700;border-radius:6px;padding:1px 0;background:#0f1216;color:var(--dim);border:1px solid var(--line)}
 .lamp.ok{color:var(--play);border-color:var(--play)}.lamp.warn{background:var(--dub);color:#111;border-color:var(--dub)}.lamp.clip{background:var(--rec);color:#fff;border-color:var(--rec)}
 .topr{margin-left:auto;display:flex;align-items:center;gap:8px}
-.pill{font-size:12px;color:var(--dim);border:1px solid var(--line);border-radius:999px;padding:3px 10px;white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis}
+.pill{font-size:14px;color:var(--dim);border:1px solid var(--line);border-radius:999px;padding:3px 10px;white-space:nowrap;max-width:260px;overflow:hidden;text-overflow:ellipsis}
 .pill.ok{color:var(--play);border-color:var(--play)}
 #startBtn{padding:7px 14px}
 #updBar{display:none;background:var(--play);color:#fff;border-radius:10px;padding:8px 14px;margin-bottom:10px;cursor:pointer;font-weight:600}
@@ -50,26 +50,27 @@ label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--txt);font-si
 .main{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:10px}
 .span2{grid-column:1/-1}
 /* Looper-Status */
-.state{font-size:44px;font-weight:800;letter-spacing:2px;text-align:center;padding:4px;border-radius:10px;line-height:1.25}
+.state{font-size:48px;font-weight:800;letter-spacing:2px;text-align:center;padding:4px;border-radius:10px;line-height:1.25}
 .state.empty{color:var(--dim);background:var(--card2)}.state.rec{color:#fff;background:var(--rec)}.state.dub{color:#111;background:var(--dub)}
 .state.play{color:#fff;background:var(--play)}.state.stopped{color:#fff;background:var(--stop)}
 .row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap}
 .bar{height:12px;background:#0f1216;border-radius:6px;overflow:hidden;margin-top:6px}
 #pos{height:100%;width:0;background:var(--acc)}
-#msg{min-height:18px;margin-top:4px;text-align:center;color:var(--dub);font-size:13px}
-.vols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px}
+#msg{min-height:20px;margin-top:4px;text-align:center;color:var(--dub);font-size:15px}
+.vols{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin-top:2px}
+.latbox{display:flex;gap:4px;align-items:center}.latbox input{width:72px;text-align:center}.latbox button{padding:3px 9px}
 /* Pedale */
 .pedals{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:2px 2px 10px}
 .pedal{position:relative;background:linear-gradient(180deg,#434c59 0%,#2b323c 55%,#232931 100%);border:1px solid #556070;border-radius:16px;
  box-shadow:0 8px 0 #0a0c0f,0 12px 18px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.18),inset 0 -2px 0 rgba(0,0,0,.25);
- padding:10px 6px 12px;min-height:180px;text-align:center;cursor:pointer;user-select:none;-webkit-user-select:none;
+ padding:10px 6px 12px;min-height:170px;text-align:center;cursor:pointer;user-select:none;-webkit-user-select:none;
  transform:translateY(0);transition:transform .07s,box-shadow .07s,background .1s;display:flex;flex-direction:column;justify-content:center;gap:4px}
 .pedal:hover{border-color:#7a8698}
 .pedal.down{transform:translateY(7px);box-shadow:0 1px 0 #0a0c0f,0 2px 5px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.08),inset 0 2px 6px rgba(0,0,0,.35);
  background:linear-gradient(180deg,#3a4e6e 0%,#2a3a55 60%,#22304a 100%);border-color:var(--acc)}
-.pedal .key{font-size:36px;font-weight:800;line-height:1;text-shadow:0 2px 0 rgba(0,0,0,.45)}
-.pedal .fn{font-size:14px;font-weight:600}
-.pedal .fn2{font-size:12px;color:#a9b3c1}
+.pedal .key{font-size:42px;font-weight:800;line-height:1;text-shadow:0 2px 0 rgba(0,0,0,.45)}
+.pedal .fn{font-size:16px;font-weight:600}
+.pedal .fn2{font-size:14px;color:#a9b3c1}
 .led{width:12px;height:12px;border-radius:50%;background:#1a1e24;margin:0 auto 4px;box-shadow:inset 0 1px 2px #000}
 .led.red{background:var(--rec);box-shadow:0 0 10px var(--rec)}.led.amber{background:var(--dub);box-shadow:0 0 10px var(--dub)}
 .led.green{background:var(--play);box-shadow:0 0 10px var(--play)}.led.blue{background:var(--acc);box-shadow:0 0 10px var(--acc)}
@@ -81,27 +82,27 @@ label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--txt);font-si
 .beats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .beat{border:2px solid var(--line);border-radius:10px;padding:8px 10px;display:grid;grid-template-columns:auto minmax(0,1.4fr) minmax(0,1.6fr) auto minmax(0,1fr);gap:8px;align-items:center}
 .beat.playing{border-color:var(--play)}
-.beat .bn{font-weight:700;font-size:14px;white-space:nowrap}
+.beat .bn{font-weight:700;font-size:16px;white-space:nowrap}
 .beat.playing .bn{color:var(--play)}
 .beat .tempo{display:flex;flex-direction:column;gap:2px}
-.beat .tempo span{font-size:12px;color:var(--txt);white-space:nowrap}
+.beat .tempo span{font-size:15px;color:var(--txt);white-space:nowrap}
 .beat .btns{display:flex;gap:4px}
 .beat .btns button{padding:5px 7px}
-.beat .vol{display:flex;flex-direction:column;gap:2px;font-size:11px;color:var(--dim)}
+.beat .vol{display:flex;flex-direction:column;gap:2px;font-size:13px;color:var(--dim)}
 #drumInfo{margin-top:6px}
 /* Stufen & Speichern */
 #layers{display:flex;flex-wrap:wrap;gap:6px;min-height:34px;align-content:flex-start}
-.chip{display:flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:4px 6px 4px 10px;font-size:13px}
+.chip{display:flex;align-items:center;gap:6px;background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:4px 6px 4px 10px;font-size:15px}
 .chip.muted{color:var(--dim);text-decoration:line-through}
-.chip button{padding:3px 7px;font-size:12px}
+.chip button{padding:3px 8px;font-size:14px}
 .save{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .save .col{display:flex;flex-direction:column;gap:6px;min-width:0}
 .line{display:flex;gap:6px;align-items:center}
 .line>*:first-child{flex:1}
 #sesList{max-height:96px;overflow:auto;border-top:1px solid var(--line)}
 .ses{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--line)}
-.ses b{font-size:13px}.ses .small{display:block}
-.ses button{padding:3px 7px;font-size:12px;margin-left:4px}
+.ses b{font-size:15px}.ses .small{display:block}
+.ses button{padding:3px 8px;font-size:14px;margin-left:4px}
 /* Overlays: Setup und Hilfe */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;z-index:10;overflow:auto;padding:30px 16px}
 .overlay.open{display:block}
@@ -115,7 +116,7 @@ label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--txt);font-si
 .learn.learning{background:var(--dub);color:#111}
 .filerow{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .maprow{border-radius:8px;padding:2px 4px;transition:background .1s}.maprow.down{background:#2a3a55}
-.filebtn{display:inline-block;cursor:pointer;color:#fff;background:var(--acc);border-radius:8px;padding:6px 10px;font-size:13px;white-space:nowrap}
+.filebtn{display:inline-block;cursor:pointer;color:#fff;background:var(--acc);border-radius:8px;padding:6px 11px;font-size:15px;white-space:nowrap}
 #help p,#help li{color:#c9d1db}
 #help ul{padding-left:20px}
 @media(max-width:1000px){.main,.save,.sgrid,.beats{grid-template-columns:1fr}.beat{grid-template-columns:auto 1fr 1fr}}
@@ -146,6 +147,9 @@ label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--txt);font-si
     <div class="vols">
       <label><span>Loops <span id="loopVolT"></span></span><input type="range" id="loopVolR" min="0" max="4" step="0.05"></label>
       <label>Drums gesamt<input type="range" id="drumVolR" min="0" max="2" step="0.05"></label>
+      <label><span>Eingangspegel <span id="inGainT"></span></span><input type="range" id="inGainR" min="0" max="4" step="0.05"></label>
+      <label title="Overdubs klingen zu spät → erhöhen, zu früh → verringern">Latenzausgleich (ms)
+        <span class="latbox"><button id="latMinus">−5</button><input type="number" id="latN" min="-200" max="500" step="1"><button id="latPlus">+5</button></span></label>
     </div>
   </section>
   <section class="pedals">
@@ -191,11 +195,9 @@ label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--txt);font-si
         <label>Eingang (Audio-Interface)<select id="inSel"></select></label>
         <label>Eingangskanal<select id="chSel"><option value="0">1 (links)</option><option value="1">2 (rechts)</option><option value="-1">Mix 1+2</option></select></label>
         <label id="outWrap">Ausgang<select id="outSel"></select></label>
-        <label>Latenzausgleich (ms)<input type="number" id="latN" min="0" max="500" step="1"></label>
-        <label>Eingangspegel<input type="range" id="inGainR" min="0" max="4" step="0.05"></label>
       </div>
       <label class="chk"><input type="checkbox" id="monChk"> Eingang durch die App hören (Monitor) – nur ohne THRU-Verkabelung</label>
-      <div class="small">Overdubs klingen zu spät → Latenzausgleich erhöhen, zu früh → verringern.</div>
+      <div class="small">Eingangspegel und Latenzausgleich stehen auf dem Hauptbildschirm.</div>
     </section>
     <section class="card"><h2>Pedale (MIDI)</h2>
       <div id="midiInfo" class="small"></div>
@@ -235,7 +237,7 @@ label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--txt);font-si
     <li><b>Takt-Synchronisation:</b> Laufen die Drums, beginnt und endet die erste Aufnahme immer an einem Taktanfang. Tritt A irgendwann im Takt vor dem Einsatz („BEREIT“, Countdown in Schlägen) – die Aufnahme startet am nächsten Taktanfang. Ein Tritt bis ein Viertel nach dem Taktanfang (also etwas zu spät) zählt noch zu diesem Takt. Zum Beenden A im letzten Takt treten: Die Aufnahme läuft bis zum Taktende und der Loop schließt sich nahtlos. Danach ist das Tempo an den Loop gebunden. Startest du die Drums erst zu einem fertigen Loop, passt sich das Tempo der Drums dem Loop an.</li>
     <li><b>Eigene Drum-Loops:</b> lizenzfreie WAV- oder MP3-Loops (z. B. von looperman.com) im Setup unter „Drum-Loop-Dateien“ für Beat 1 oder 2 laden. Steht das Tempo im Dateinamen (z. B. „Funk 95 BPM“), erkennt die App die Taktzahl selbst; sonst unter „Takte“ korrigieren. Die Dateien bleiben nur in diesem Browser auf diesem Gerät.</li>
     <li>BlueBoard: beim Einschalten <b>C</b> gedrückt halten („MIDI over Bluetooth mode 2“), am Mac über Audio-MIDI-Setup → MIDI-Studio → Bluetooth verbinden. Die Tasten senden CC 20–23 und sind voreingestellt.</li>
-    <li>Klingen Overdubs zu spät, den Latenzausgleich erhöhen; zu früh, verringern.</li>
+    <li><b>Latenzausgleich</b> (Hauptbildschirm, −5/+5): Klingen Overdubs zu spät, erhöhen; zu früh, verringern. Negative Werte sind möglich (bis −200 ms), falls Overdubs selbst bei 0 noch zu spät liegen.</li>
   </ul>
   <h3>Installation</h3>
   <ul>
@@ -255,7 +257,7 @@ label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--txt);font-si
 
 <script>
 "use strict";
-const VERSION='5.0';
+const VERSION='5.1';
 const KONTAKT_URL='https://github.com/app-laden';
 const $=id=>document.getElementById(id);
 $('ver').textContent=VERSION;$('ver2').textContent=VERSION;
@@ -358,7 +360,7 @@ function makeCapNode(srcNode,silent,onData,ch){
   srcNode.connect(n);n.connect(silent);
   return{node:n,setCh:x=>{c=x;}};
 }
-let recMix,recDelay,drumRec,recLim;
+let recMix,recDelay,recInDelay,drumRec,recLim;
 async function makeCapture(silent){
   await initCaptureModule();
   const c=makeCapNode(inGain,silent,onChunk,cfg.chan);cap=c.node;capSetCh=c.setCh;
@@ -367,7 +369,7 @@ async function makeCapture(silent){
   recMix=ctx.createGain();recDelay=ctx.createDelay(1.0);drumRec=ctx.createGain();
   recLim=ctx.createDynamicsCompressor();
   recLim.threshold.value=-2;recLim.knee.value=0;recLim.ratio.value=20;recLim.attack.value=0.002;recLim.release.value=0.15;
-  inGain.connect(recMix);loopBus.connect(recDelay);drumBus.connect(drumRec);drumRec.connect(recDelay);recDelay.connect(recMix);
+  recInDelay=ctx.createDelay(1.0);inGain.connect(recInDelay);recInDelay.connect(recMix);loopBus.connect(recDelay);drumBus.connect(drumRec);drumRec.connect(recDelay);recDelay.connect(recMix);
   recMix.connect(recLim);
   makeCapNode(recLim,silent,onMix,-1);
   allocRing();
@@ -401,11 +403,12 @@ function applyCfg(){
   $('inGainR').value=cfg.inGain;$('loopVolR').value=cfg.loopVol;$('chSel').value=String(cfg.chan);
   $('drumVolR').value=cfg.drumVol;
   const db=v=>v>0?'('+(20*Math.log10(v)>=0?'+':'')+(20*Math.log10(v)).toFixed(0)+' dB)':'(aus)';
-  $('loopVolT').textContent=db(cfg.loopVol);
+  $('loopVolT').textContent=db(cfg.loopVol);$('inGainT').textContent=db(cfg.inGain);
   if(!ctx)return;
   inGain.gain.value=cfg.inGain;loopBus.gain.value=cfg.loopVol;drumBus.gain.value=cfg.drumVol;
   monGain.gain.value=cfg.monitor?1:0;
-  if(recDelay)recDelay.delayTime.value=Math.min(0.99,(cfg.latMs||0)/1000);
+  if(recDelay)recDelay.delayTime.value=Math.min(0.99,Math.max(0,(cfg.latMs||0)/1000));
+  if(recInDelay)recInDelay.delayTime.value=Math.min(0.99,Math.max(0,-(cfg.latMs||0)/1000));
   if(drumRec)drumRec.gain.value=cfg.recDrums?1:0;
   capSetCh(cfg.chan);
 }
@@ -968,7 +971,7 @@ function fillBack(){
   const add=(v,t)=>{const o=document.createElement('option');o.value=v;o.textContent=t;sel.appendChild(o);};
   [4,8,16,32,64].forEach(n=>add('b'+n,'letzte '+n+' Takte'));
   [0.5,1,2,5,10,15].filter(m=>m<=cfg.recMin).forEach(m=>add('m'+m,m<1?'letzte 30 Sekunden':'letzte '+m+(m===1?' Minute':' Minuten')));
-  add('all','alles im Puffer (bis '+cfg.recMin+' Min.)');
+  add('all','alles (bis '+cfg.recMin+' Min.)');
   if(![...sel.options].some(o=>o.value===cfg.back))cfg.back='all';
   sel.value=cfg.back;
 }
@@ -1208,7 +1211,9 @@ $('chSel').onchange=e=>{cfg.chan=Number(e.target.value);saveCfg();applyCfg();};
 $('inGainR').oninput=e=>{cfg.inGain=Number(e.target.value);saveCfg();applyCfg();};
 $('loopVolR').oninput=e=>{cfg.loopVol=Number(e.target.value);saveCfg();applyCfg();};
 $('drumVolR').oninput=e=>{cfg.drumVol=Number(e.target.value);saveCfg();applyCfg();};
-$('latN').onchange=e=>{cfg.latMs=Math.max(0,Number(e.target.value)||0);saveCfg();};
+const setLat=v=>{cfg.latMs=Math.max(-200,Math.min(500,Math.round(v)));saveCfg();applyCfg();};
+$('latN').onchange=e=>setLat(Number(e.target.value)||0);
+$('latMinus').onclick=()=>setLat((cfg.latMs||0)-5);$('latPlus').onclick=()=>setLat((cfg.latMs||0)+5);
 $('monChk').onchange=e=>{cfg.monitor=e.target.checked;saveCfg();applyCfg();};
 $('ccChk').onchange=e=>{cfg.ccAny=e.target.checked;saveCfg();};
 document.addEventListener('keydown',e=>{
