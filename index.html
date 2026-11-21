@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
-<title>BlueBoard Looper 5.2</title>
+<title>BlueBoard Looper 5.3</title>
 <style>
 :root{--bg:#111418;--card:#1b2027;--card2:#151a20;--line:#2c333d;--txt:#e8ecf1;--dim:#8b95a3;--rec:#e5484d;--dub:#f5a524;--play:#30a46c;--stop:#5b6573;--acc:#3e8ef7}
 *{box-sizing:border-box}
@@ -56,6 +56,14 @@ label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--txt);font-si
 .row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap}
 .bar{height:12px;background:#0f1216;border-radius:6px;overflow:hidden;margin-top:6px}
 #pos{height:100%;width:0;background:var(--acc)}
+#tracks2{display:flex;flex-direction:column;gap:8px}
+.trow{display:grid;grid-template-columns:30px 150px 1fr 110px;gap:10px;align-items:center}
+.trow .bar{margin:0;height:14px}.tp{height:100%;width:0;background:var(--acc)}
+.tname{font-size:28px;font-weight:900;text-align:center}
+.tstate{font-size:20px;font-weight:800;text-align:center;border-radius:8px;padding:6px 4px;letter-spacing:1px}
+.tstate.empty{color:var(--dim);background:var(--card2)}.tstate.rec{color:#fff;background:var(--rec)}.tstate.dub{color:#111;background:var(--dub)}
+.tstate.play{color:#fff;background:var(--play)}.tstate.stopped{color:#fff;background:var(--stop)}
+.tlen{font-size:14px;color:var(--dim);text-align:right}
 #msg{min-height:20px;margin-top:4px;text-align:center;color:var(--dub);font-size:15px}
 .vols{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin-top:2px}
 .latbox{display:flex;gap:4px;align-items:center}.latbox input{width:72px;text-align:center}.latbox button{padding:3px 9px}
@@ -152,7 +160,11 @@ label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--txt);font-si
 <div class="main">
   <section class="card">
     <div id="stateTxt" class="state empty">LEER</div>
-    <div class="bar"><div id="pos"></div></div>
+    <div class="bar" id="posBar"><div id="pos"></div></div>
+    <div id="tracks2" class="hide">
+      <div class="trow"><span class="tname">A</span><span class="tstate empty" id="tst0">LEER</span><div class="bar"><div id="tpos0" class="tp"></div></div><span class="tlen" id="tlen0"></span></div>
+      <div class="trow"><span class="tname">B</span><span class="tstate empty" id="tst1">LEER</span><div class="bar"><div id="tpos1" class="tp"></div></div><span class="tlen" id="tlen1"></span></div>
+    </div>
     <div class="row"><span id="len">–</span><span id="layerInfo">Stufen: 0</span></div>
     <div id="msg"></div>
     <div class="vols">
@@ -164,8 +176,8 @@ label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--txt);font-si
     </div>
   </section>
   <section class="pedals">
-    <div class="pedal" data-k="A"><i class="scr a"></i><i class="scr b"></i><i class="scr c"></i><i class="scr d"></i><div class="led" id="ledA"></div><div class="key">A</div><div class="nut"><div class="knob"></div></div><div class="fn">Aufnahme · Play · Overdub</div></div>
-    <div class="pedal" data-k="B"><i class="scr a"></i><i class="scr b"></i><i class="scr c"></i><i class="scr d"></i><div class="led" id="ledB"></div><div class="key">B</div><div class="nut"><div class="knob"></div></div><div class="fn">Letzte Stufe zurück</div></div>
+    <div class="pedal" data-k="A"><i class="scr a"></i><i class="scr b"></i><i class="scr c"></i><i class="scr d"></i><div class="led" id="ledA"></div><div class="key">A</div><div class="nut"><div class="knob"></div></div><div class="fn">Aufnahme · Play · Overdub</div><div class="fn2"></div></div>
+    <div class="pedal" data-k="B"><i class="scr a"></i><i class="scr b"></i><i class="scr c"></i><i class="scr d"></i><div class="led" id="ledB"></div><div class="key">B</div><div class="nut"><div class="knob"></div></div><div class="fn">Letzte Stufe zurück</div><div class="fn2"></div></div>
     <div class="pedal" data-k="C"><i class="scr a"></i><i class="scr b"></i><i class="scr c"></i><i class="scr d"></i><div class="led" id="ledC"></div><div class="key">C</div><div class="nut"><div class="knob"></div></div><div class="fn">Stop / Play</div><div class="fn2">2× = alles löschen</div></div>
     <div class="pedal" data-k="D"><i class="scr a"></i><i class="scr b"></i><i class="scr c"></i><i class="scr d"></i><div class="led" id="ledD"></div><div class="key">D</div><div class="nut"><div class="knob"></div></div><div class="fn">Beat 1 / Stop</div><div class="fn2">2× = Beat wechseln</div></div>
   </section>
@@ -178,7 +190,7 @@ label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--txt);font-si
   </section>
 
   <section class="card">
-    <div class="ch"><h2>Stufen</h2><span class="sp"></span><button id="redoBtn">↻ Wiederherstellen</button><button id="clearBtn">Alles löschen</button></div>
+    <div class="ch"><h2 id="layersTitle">Stufen</h2><span class="sp"></span><button id="redoBtn">↻ Wiederherstellen</button><button id="clearBtn">Alles löschen</button></div>
     <div id="layers"></div>
   </section>
   <section class="card">
@@ -211,6 +223,9 @@ label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--txt);font-si
       <div class="small">Eingangspegel und Latenzausgleich stehen auf dem Hauptbildschirm.</div>
     </section>
     <section class="card"><h2>Pedale (MIDI)</h2>
+      <label>Belegung der Tasten A und B<select id="modeSel">
+        <option value="1">Stufen-Looper – A: Aufnahme/Overdub (beliebig viele Stufen), B: Rückgängig</option>
+        <option value="2">Zwei Spuren – A und B: zwei unabhängige Aufnahmen</option></select></label>
       <div id="midiInfo" class="small"></div>
       <div class="maprow"><b>A</b><span id="mapA" class="small"></span><button class="learn" data-k="A">MIDI lernen</button></div>
       <div class="maprow"><b>B</b><span id="mapB" class="small"></span><button class="learn" data-k="B">MIDI lernen</button></div>
@@ -238,6 +253,7 @@ label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--txt);font-si
   <ul>
     <li><b>A</b>: 1. Druck Aufnahme, 2. Druck Loop schließen und abspielen, danach Overdub an/aus. Jeder Overdub ist eine eigene Stufe.</li>
     <li><b>B</b>: letzte Stufe entfernen (während Aufnahme/Overdub: diese verwerfen).</li>
+    <li><b>Belegung „Zwei Spuren“</b> (im Setup umschaltbar): A und B sind zwei unabhängige Aufnahmen. Einmal treten: Aufnahme starten → Aufnahme beenden (Spur läuft) → anhalten → wieder abspielen (ab Anfang, am nächsten Taktanfang). Zweimal schnell: Spur löschen. C stoppt/startet alles, C zweimal löscht beide Spuren, D wie gewohnt. Ohne Drums gibt die zuerst aufgenommene Spur den Takt vor; die zweite Spur wird auf ein Vielfaches davon ausgerichtet.</li>
     <li><b>C</b>: einmal = Stop/Play (Loop und Drums gemeinsam), zweimal schnell = alles löschen.</li>
     <li><b>D</b>: einmal = Beat 1 starten bzw. laufende Drums stoppen; zweimal schnell = zwischen Beat 1 und Beat 2 wechseln (genau am nächsten Taktanfang). Sind die Drums aus, startet D zweimal direkt Beat 2. Weil die App kurz auf einen zweiten Tritt wartet, stoppt D einmal mit knapp einer halben Sekunde Verzögerung.</li>
     <li><b>Zwei Beats:</b> Jeder Beat hat eigenes Pattern bzw. eigene Loop-Datei, eigenes Tempo und eigene Lautstärke. Ist ein Loop aufgenommen, laufen beide Beats in dessen Tempo; hat ein Beat etwa das halbe oder doppelte Tempo, bleibt dieses Verhältnis erhalten (z. B. Halftime-Teil).</li>
@@ -268,7 +284,7 @@ label.chk{flex-direction:row;align-items:center;gap:8px;color:var(--txt);font-si
 
 <script>
 "use strict";
-const VERSION='5.2';
+const VERSION='5.3';
 const KONTAKT_URL='https://github.com/app-laden';
 const $=id=>document.getElementById(id);
 $('ver').textContent=VERSION;$('ver2').textContent=VERSION;
@@ -279,7 +295,7 @@ const store={
   set(k,v){try{localStorage.setItem('bbl_'+k,JSON.stringify(v))}catch(e){}}
 };
 let cfg=Object.assign({latMs:null,ccAny:false,monitor:false,inGain:1,loopVol:0.9,chan:0,inDev:'',outDev:'',
-  drumVol:0.8,bpm:100,pattern:'p:0',recMin:5,recDrums:true,back:'all'},store.get('cfg',{}));
+  drumVol:0.8,bpm:100,pattern:'p:0',mode:1,recMin:5,recDrums:true,back:'all'},store.get('cfg',{}));
 if(!Array.isArray(cfg.beats))cfg.beats=[{pattern:cfg.pattern||'p:0',bpm:cfg.bpm||100,vol:1},{pattern:'p:3',bpm:cfg.bpm||100,vol:1}];
 let map={A:'c0:20',B:'c0:21',C:'c0:22',D:'c0:23'};
 {const m=store.get('map',{});for(const k in map)if(m[k])map[k]=m[k];}
@@ -429,7 +445,8 @@ function onChunk(e){
   const {f,d}=e.data;capEnd=f+d.length;
   chunks.push({f,d});
   if(busy===0&&chunks.length>64){
-    const act=state==='rec'?recStart:state==='dub'?dubStart:capEnd;
+    let act=state==='rec'?recStart:state==='dub'?dubStart:capEnd;
+    trk.forEach(t=>{if(t.state==='rec')act=Math.min(act,t.recStart);});
     const keep=Math.min(act,capEnd)-12*sr;
     let i=0;while(i<chunks.length&&chunks[i].f+chunks[i].d.length<keep)i++;
     if(i)chunks.splice(0,i);
@@ -533,7 +550,7 @@ function doRedo(){
 }
 function clearAll(){
   stopAll();layers.forEach(l=>l.gain.disconnect());redo.forEach(l=>l.gain.disconnect());
-  layers=[];redo=[];L=0;lockBar=null;gen++;busy=0;drumsPaused=false;
+  layers=[];redo=[];L=0;lockBar=null;gen++;busy=0;drumsPaused=false;tClearAll();
   setState('empty');renderLayers();updateDrumUI();flash('Alles gelöscht');
 }
 
@@ -568,14 +585,14 @@ function pressD(){
   dTimer=setTimeout(()=>{dTimer=null;drumsPaused=false;if(active)stopDrums();else startDrums(0);},450);
 }
 const actions={
-  A(){switch(state){
+  A(){if(twoMode())return tPress(0);switch(state){
     case 'empty':startRec();break;
     case 'rec':endRec();break;
     case 'play':startDub();break;
     case 'dub':endDub('play');break;
     case 'stopped':startPlay();resumeDrums();break;}},
-  B(){undo();},
-  C(){pressC();},
+  B(){if(twoMode())return tPress(1);undo();},
+  C(){if(twoMode())return pressC2();pressC();},
   D(){pressD();}
 };
 const held={};
@@ -591,6 +608,145 @@ async function trigger(k){
   if(!ctx){flash('Bitte zuerst „Audio starten“ klicken');return;}
   if(ctx.state!=='running')await ctx.resume();
   actions[k]();
+}
+
+// ================= Belegung „Zwei Spuren“ (A und B unabhängig) =================
+// Jede Spur: leer → (1×) Aufnahme → (1×) läuft → (1×) angehalten → (1×) läuft wieder ab Anfang am nächsten Taktanfang.
+// Zweimal schnell treten löscht die Spur. Ohne Drums gibt die erste Spur den Takt vor (ihre Länge = 1 Einheit).
+const twoMode=()=>cfg.mode===2;
+const trk=[0,1].map(i=>({i,name:'AB'[i],state:'empty',L:0,anchor:0,buf:null,gain:null,src:null,muted:false,recStart:0,recQ:null,gen:0,last:0,wasPlaying:false}));
+let g2Origin=0,stopped2=false;
+function tHas(){return trk.some(t=>t.L>0&&t.state!=='rec');}
+function hasLoop(){return twoMode()?tHas():L>0;}
+function gOrigin(){return twoMode()?g2Origin:anchor;}
+function tGrid(){
+  if(lockBar&&tHas())return{bar:lockBar,origin:g2Origin};
+  if(active)return{bar:curBar(active.slot),origin:active.origin};
+  return null;
+}
+function tStopSrc(t){if(t.src){try{t.src.stop()}catch(e){}t.src.disconnect();t.src=null;}}
+function tStartSrc(t){
+  if(!t.buf)return;
+  tStopSrc(t);
+  const s=ctx.createBufferSource();s.buffer=t.buf;s.loop=true;s.connect(t.gain);
+  const t0=Math.max(ctx.currentTime+0.03,t.anchor/sr);
+  const off=(((Math.round(t0*sr)-t.anchor)%t.L)+t.L)%t.L;
+  s.start(t0,off/sr);t.src=s;
+}
+function tPress(i){
+  const t=trk[i],now=performance.now();
+  if(now-t.last<450){t.last=0;tClear(t,true);return;}
+  t.last=now;
+  switch(t.state){
+    case 'empty':tStartRec(t);break;
+    case 'rec':tEndRec(t);break;
+    case 'play':tStopSrc(t);t.state='paused';flash('Spur '+t.name+' angehalten');break;
+    case 'paused':tResume(t);break;
+  }
+  renderLayers();
+}
+function tStartRec(t){
+  const q=tGrid();t.recQ=q;
+  t.recStart=q?snapBar(nowF(),q):nowF();
+  t.state='rec';stopped2=false;
+}
+function tEndRec(t){
+  const e=nowF();let s=t.recStart,end=e;
+  if(t.recQ){
+    end=snapBar(e,t.recQ);
+    if(end-s<t.recQ.bar*0.5)end=Math.round(s+t.recQ.bar);
+    if(!lockBar||!trk.some(x=>x!==t&&x.L>0)){lockBar=t.recQ.bar;g2Origin=t.recQ.origin;}
+  }else if(e-s<sr*0.25){t.state='empty';flash('Zu kurz – verworfen');return;}
+  t.L=end-s;t.anchor=end;
+  if(!t.recQ){lockBar=t.L;g2Origin=end;}
+  t.state='play';
+  const lat=latF(),g=++t.gen;busy++;
+  waitFrame(end+lat,()=>{
+    busy--;if(g!==t.gen)return;
+    const d=extract(s+lat,end+lat);fade(d,Math.round(sr*0.004));
+    const b=ctx.createBuffer(1,t.L,sr);b.copyToChannel(d,0);t.buf=b;
+    if(!t.gain){t.gain=ctx.createGain();t.gain.connect(loopBus);}
+    t.gain.gain.value=t.muted?0:1;
+    if(t.state==='play')tStartSrc(t);
+    renderLayers();
+  });
+  updateDrumUI();
+}
+function tResume(t){
+  if(!t.buf){flash('Spur '+t.name+' wird noch vorbereitet');return;}
+  const q=tGrid();let at=nowF()+Math.round(0.03*sr);
+  if(q){const n=nowF()+Math.round(0.05*sr);at=Math.round(q.origin+Math.ceil((n-q.origin)/q.bar)*q.bar);}
+  t.anchor=at;t.state='play';stopped2=false;tStartSrc(t);
+  flash('Spur '+t.name+' startet am nächsten Taktanfang');
+}
+function tClear(t,msg){
+  tStopSrc(t);t.gen++;t.L=0;t.buf=null;t.state='empty';t.wasPlaying=false;
+  if(!trk.some(x=>x.L>0))lockBar=null;
+  if(msg)flash('Spur '+t.name+' gelöscht');
+  renderLayers();updateDrumUI();
+}
+function tClearAll(){trk.forEach(t=>{tStopSrc(t);t.gen++;t.L=0;t.buf=null;t.state='empty';t.wasPlaying=false;});stopped2=false;}
+function pressC2(){
+  const now=performance.now();
+  if(now-lastC<450){
+    lastC=0;const restore=cRestore;
+    clearAll();
+    if(restore!=null&&!active)startDrums(restore);
+    return;
+  }
+  lastC=now;cRestore=active?active.slot:(drumsPaused?pausedSlot:null);
+  const rec=trk.find(t=>t.state==='rec');
+  if(rec){tEndRec(rec);renderLayers();return;}
+  if(!stopped2&&(trk.some(t=>t.state==='play')||active)){
+    trk.forEach(t=>{t.wasPlaying=t.state==='play';if(t.wasPlaying){tStopSrc(t);t.state='paused';}});
+    pauseDrums();stopped2=true;flash('Gestoppt – C startet wieder');
+  }else if(stopped2||trk.some(t=>t.state==='paused')){
+    const origin=Math.round((ctx.currentTime+0.05)*sr);
+    const list=trk.filter(t=>t.wasPlaying&&t.buf);
+    if(lockBar&&tHas())g2Origin=origin;
+    list.forEach(t=>{t.anchor=origin;t.state='play';tStartSrc(t);t.wasPlaying=false;});
+    stopped2=false;resumeDrums();
+    if(!list.length&&!active)flash('Nichts zum Abspielen – A oder B treten');
+  }
+  renderLayers();
+}
+function tStateTxt(t,n){
+  if(t.state==='rec'&&n<t.recStart)return['BEREIT','dub'];
+  if(t.state==='play'&&n<t.anchor&&t.buf)return['WARTET','dub'];
+  if(t.state==='play'&&!t.buf)return['AUFNAHME','rec'];
+  return[{empty:'LEER',rec:'AUFNAHME',play:'LÄUFT',paused:'PAUSE'}[t.state],{empty:'empty',rec:'rec',play:'play',paused:'stopped'}[t.state]];
+}
+function render2(f,n){
+  for(const t of trk){
+    const [lab,cls]=tStateTxt(t,n);
+    const el=$('tst'+t.i);if(el.textContent!==lab)el.textContent=lab;if(el.className!=='tstate '+cls)el.className='tstate '+cls;
+    let w=0,info='';
+    if(t.state==='rec'){
+      if(n<t.recStart){info=t.recQ?'startet in '+Math.ceil((t.recStart-n)/(t.recQ.bar/4))+' Schl.':'';}
+      else{w=100;info=t.recQ?'Takt '+(Math.floor((n-t.recStart)/t.recQ.bar)+1):((n-t.recStart)/sr).toFixed(1)+' s';}
+    }else if(t.L>0){
+      const bars=lockBar?Math.round(t.L/lockBar):0;
+      info=(t.L/sr).toFixed(1)+' s'+(bars&&active?' · '+bars+' T.':'');
+      if(t.state==='play'&&f>=t.anchor)w=((f-t.anchor)%t.L)/t.L*100;
+    }
+    $('tpos'+t.i).style.width=w+'%';$('tlen'+t.i).textContent=info;
+    const led={rec:'red',play:'green',paused:'amber'}[t.state]||'';
+    setLed('led'+'AB'[t.i],t.state==='play'&&n<t.anchor?'amber':led);
+  }
+  $('len').textContent=lockBar&&tHas()?('Takt: '+(lockBar/sr).toFixed(2)+' s'+(active?' · '+Math.round(240*sr/lockBar)+' BPM':'')):'Zwei Spuren';
+  $('layerInfo').textContent='';
+  setLed('ledC',trk.some(t=>t.state==='play')?'green':stopped2?'amber':'');
+}
+function applyMode(){
+  const two=twoMode();
+  $('stateTxt').classList.toggle('hide',two);$('posBar').classList.toggle('hide',two);$('tracks2').classList.toggle('hide',!two);
+  $('redoBtn').classList.toggle('hide',two);
+  $('layersTitle').textContent=two?'Spuren':'Stufen';
+  const set=(k,a,b)=>{const p=document.querySelector(`.pedal[data-k="${k}"]`);p.querySelector('.fn').textContent=a;p.querySelector('.fn2').textContent=b;};
+  if(two){set('A','Spur A','Aufnahme / Pause · 2× löschen');set('B','Spur B','Aufnahme / Pause · 2× löschen');}
+  else{set('A','Aufnahme · Play · Overdub','');set('B','Letzte Stufe zurück','');}
+  $('modeSel').value=String(cfg.mode);
+  renderLayers();
 }
 
 // ================= Drumcomputer (zwei Beats) =================
@@ -693,12 +849,12 @@ function startDrums(slot){
   if(!ctx){flash('Bitte zuerst „Audio starten“ klicken');return;}
   if(active)stopDrums();
   if(!canStart(slot))return;
-  if(L>0&&!lockBar){
+  if(!twoMode()&&L>0&&!lockBar){
     const n=Math.max(1,Math.round(L/natBar(slot)));
     lockBar=L/n;
     flash('Tempo an Loop angepasst: '+Math.round(240*sr/lockBar)+' BPM');
   }
-  const origin=L>0?anchor:nowF()+Math.round(0.08*sr);
+  const origin=hasLoop()?gOrigin():nowF()+Math.round(0.08*sr);
   active=startBeat(slot,origin,origin);
   updateDrumUI();
 }
@@ -712,7 +868,7 @@ function switchTo(to){
   if(!canStart(to))return;
   const cur=active,b=curBar(cur.slot),soon=nowF()+Math.round(0.12*sr);
   const at=Math.round(cur.origin+Math.ceil((soon-cur.origin)/b)*b);
-  const origin=(L>0&&lockBar)?anchor:at;
+  const origin=(hasLoop()&&lockBar)?gOrigin():at;
   endInst(cur,at,false);
   active=startBeat(to,origin,at);
   flash('Wechsel zu Beat '+(to+1)+' am nächsten Taktanfang');
@@ -952,7 +1108,7 @@ function download(blob,name){
 function stamp(){const d=new Date(),p=x=>String(x).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'_'+p(d.getHours())+p(d.getMinutes());}
 function safeName(s){return(s||'').replace(/[\\/:*?"<>|]+/g,'').trim();}
 function gridInfo(){
-  if(lockBar&&L>0)return{bar:lockBar,origin:anchor};
+  if(lockBar&&hasLoop())return{bar:lockBar,origin:gOrigin()};
   if(active)return{bar:curBar(active.slot),origin:active.origin};
   return null;
 }
@@ -995,6 +1151,8 @@ function updateRecInfo(){
 // ---------- Loops sichern (mit Stufen und Beat-Einstellungen) ----------
 let sessions=[];
 function sesInfo(s){
+  if(s.mode===2){const d=new Date(s.date);const n=s.tracks.filter(t=>t&&t.L).length;
+    return 'Zwei Spuren ('+n+' belegt)'+(s.lockBar&&s.slot!=null?' · '+Math.round(240*s.sr/s.lockBar)+' BPM':'')+' · '+d.toLocaleDateString('de-DE')+' '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});}
   const bars=s.lockBar?Math.round(s.L/s.lockBar):0;
   const d=new Date(s.date);
   return (bars?bars+' Takt'+(bars>1?'e':'')+' · '+Math.round(240*s.sr/s.lockBar)+' BPM':(s.L/s.sr).toFixed(1)+' s')+' · '+s.layers.length+' Stufe'+(s.layers.length>1?'n':'')+' · '+d.toLocaleDateString('de-DE')+' '+d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'});
@@ -1020,6 +1178,7 @@ function renderSessions(){
   });
 }
 async function saveSession(){
+  if(twoMode())return saveSession2();
   if(!ctx||!L||!layers.length){flash('Kein Loop zum Sichern vorhanden');return;}
   const name=safeName($('sesName').value)||('Loop '+stamp().replace('_',' '));
   const s={name,date:Date.now(),sr,L,lockBar,
@@ -1040,6 +1199,8 @@ async function loadSession(s){
   if(!ctx){flash('Bitte zuerst „Audio starten“ klicken');return;}
   if(dTimer){clearTimeout(dTimer);dTimer=null;}
   stopDrums();clearAll();
+  const want=s.mode===2?2:1;if(cfg.mode!==want){cfg.mode=want;saveCfg();applyMode();}
+  if(want===2)return loadSession2(s);
   const ratio=sr/s.sr;
   L=Math.round(s.L*ratio);lockBar=s.lockBar?s.lockBar*ratio:null;anchor=nowF();
   cfg.beats=JSON.parse(JSON.stringify(s.beats));saveCfg();
@@ -1054,6 +1215,30 @@ async function loadSession(s){
   renderLayers();updateDrumUI();
   flash('„'+s.name+'“ geladen – C (oder A) startet Loop'+(s.slot!=null?' und Drums':''));
 }
+async function saveSession2(){
+  if(!ctx||!trk.some(t=>t.buf)){flash('Keine Spur zum Sichern vorhanden');return;}
+  const name=safeName($('sesName').value)||('Spuren '+stamp().replace('_',' '));
+  const s={name,date:Date.now(),sr,mode:2,lockBar,
+    tracks:trk.map(t=>t.buf?{L:t.L,data:t.buf.getChannelData(0).slice().buffer,muted:t.muted,playing:t.state==='play'||t.wasPlaying}:null),
+    beats:JSON.parse(JSON.stringify(cfg.beats)),slot:active?active.slot:(drumsPaused?pausedSlot:null)};
+  try{s.id=await DB.put(s,'sessions');}catch(e){flash('Sichern fehlgeschlagen: '+e.message);return;}
+  sessions.push(s);renderSessions();$('sesName').value='';flash('„'+name+'“ gesichert');
+}
+async function loadSession2(s){
+  const ratio=sr/s.sr;
+  cfg.beats=JSON.parse(JSON.stringify(s.beats));saveCfg();fillPatterns();await prepareLoops();
+  s.tracks.forEach((d,i)=>{
+    if(!d)return;const t=trk[i];
+    t.L=Math.round(d.L*ratio);const data=resample(new Float32Array(d.data),t.L);
+    t.buf=ctx.createBuffer(1,t.L,sr);t.buf.copyToChannel(data,0);
+    if(!t.gain){t.gain=ctx.createGain();t.gain.connect(loopBus);}
+    t.muted=!!d.muted;t.gain.gain.value=t.muted?0:1;t.state='paused';t.wasPlaying=!!d.playing;
+  });
+  lockBar=s.lockBar?s.lockBar*ratio:null;g2Origin=nowF();stopped2=true;
+  if(s.slot!=null){drumsPaused=true;pausedSlot=s.slot;}
+  renderLayers();updateDrumUI();
+  flash('„'+s.name+'“ geladen – C startet, A/B einzeln');
+}
 function mixLayers(list,len){
   const out=new Int16Array(len),acc=new Float32Array(len);
   list.forEach(d=>{for(let i=0;i<len;i++)acc[i]+=d[i];});
@@ -1063,11 +1248,17 @@ function mixLayers(list,len){
   return out;
 }
 function exportSessionWav(s){
+  if(s.mode===2){s.tracks.forEach((t,i)=>{if(t&&t.L)download(wavBlob(mixLayers([new Float32Array(t.data)],t.L),s.sr),'Spur_'+'AB'[i]+'_'+safeName(s.name)+'.wav');});return;}
   const list=s.layers.filter(l=>!l.muted).map(l=>new Float32Array(l.data));
   if(!list.length){flash('Alle Stufen stumm');return;}
   download(wavBlob(mixLayers(list,s.L),s.sr),'Loop_'+safeName(s.name)+'.wav');
 }
 function exportCurrentWav(){
+  if(twoMode()){
+    const have=trk.filter(t=>t.buf);if(!have.length){flash('Keine Spur vorhanden');return;}
+    have.forEach(t=>download(wavBlob(mixLayers([t.buf.getChannelData(0)],t.L),sr),'Spur_'+t.name+'_'+stamp()+'.wav'));
+    flash('Spuren als WAV gespeichert (ohne Drums)');return;
+  }
   if(!ctx||!L||!layers.length){flash('Kein Loop vorhanden');return;}
   const list=layers.filter(l=>!l.muted).map(l=>l.buf.getChannelData(0));
   if(!list.length){flash('Alle Stufen stumm');return;}
@@ -1097,6 +1288,19 @@ function setState(s){state=s;const el=$('stateTxt');el.className='state '+s;el.t
 let msgT=0;
 function flash(t){$('msg').textContent=t;clearTimeout(msgT);msgT=setTimeout(()=>$('msg').textContent='',3000);}
 function renderLayers(){
+  if(twoMode()){
+    const box=$('layers');box.innerHTML='';
+    trk.forEach(t=>{
+      const c=document.createElement('span');c.className='chip'+(t.muted?' muted':'');
+      const lb=document.createElement('span');lb.textContent='Spur '+t.name+(t.L?' · '+(t.L/sr).toFixed(1)+' s':' · leer');
+      c.appendChild(lb);
+      if(t.L){const b=document.createElement('button');b.textContent=t.muted?'an':'stumm';
+        b.onclick=()=>{t.muted=!t.muted;if(t.gain)t.gain.gain.setTargetAtTime(t.muted?0:1,ctx.currentTime,0.01);renderLayers();};c.appendChild(b);
+        const x=document.createElement('button');x.textContent='löschen';x.onclick=()=>tClear(t,true);c.appendChild(x);}
+      box.appendChild(c);
+    });
+    return;
+  }
   $('layerInfo').textContent='Stufen: '+layers.length+(redo.length?` (+${redo.length} wiederherstellbar)`:'');
   const box=$('layers');box.innerHTML='';
   if(!layers.length){box.innerHTML='<span class="small">Noch keine Aufnahme.</span>';return;}
@@ -1127,6 +1331,7 @@ function tick(){
     setLamp('outLamp',tnow-lampT.outClip<2000?'clip':tnow-lampT.outWarn<1500?'warn':'ok',tnow-lampT.outClip<2000?'ZU LAUT':'BEGRENZT');
     const f=nowF()-outLatF();
     const n=nowF();
+    if(twoMode()){render2(f,n);setLed('ledD',active?(active.slot===0?'green':'blue'):'');}else{
     let lab=stateNames[state],cls=state;
     if(state==='rec'&&recQ&&n<recStart){
       lab='BEREIT';cls='dub';
@@ -1146,6 +1351,7 @@ function tick(){
     setLed('ledC',state==='play'||state==='dub'?'green':state==='stopped'?'amber':'');
     setLed('ledD',active?(active.slot===0?'green':'blue'):'');
     const st=$('stateTxt');if(st.textContent!==lab)st.textContent=lab;if(st.className!=='state '+cls)st.className='state '+cls;
+    }
     let beat=-1;
     if(active){const ins=insts.find(x=>x.stopAt!==Infinity&&f<x.stopAt&&f>=x.startAt)||active;const bar=curBar(ins.slot);const ph=(((f-ins.origin)%bar)+bar)%bar;if(f>=ins.startAt)beat=Math.floor(ph/bar*4);}
     dotEls.forEach((d,i)=>d.classList.toggle('on',i===beat));
@@ -1248,7 +1454,15 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
   }).catch(e=>console.warn('Service Worker',e));
 }
 
-buildBeatUI();initSaveUI();applyCfg();renderMap();renderLayers();loadUserLoops();updateDrumUI();requestAnimationFrame(tick);
+buildBeatUI();initSaveUI();applyCfg();
+$('modeSel').onchange=e=>{
+  const v=Number(e.target.value);if(v===cfg.mode)return;
+  const content=L>0||trk.some(t=>t.L>0||t.state==='rec')||state==='rec';
+  if(content&&!confirm('Beim Umschalten werden die aktuellen Aufnahmen gelöscht (gesicherte Loops bleiben). Fortfahren?')){e.target.value=String(cfg.mode);return;}
+  if(ctx&&content)clearAll();
+  cfg.mode=v;saveCfg();applyMode();flash(v===2?'Belegung: Zwei Spuren':'Belegung: Stufen-Looper');
+};
+applyMode();renderMap();renderLayers();loadUserLoops();updateDrumUI();requestAnimationFrame(tick);
 </script>
 </body>
 </html>
